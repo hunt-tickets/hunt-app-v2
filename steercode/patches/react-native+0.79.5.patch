@@ -1,0 +1,136 @@
+diff --git a/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js b/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js
+index 84f62a1..d770905 100644
+--- a/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js
++++ b/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js
+@@ -23,67 +23,8 @@ type Props = $ReadOnly<{
+ }>;
+ 
+ export function _LogBoxNotificationContainer(props: Props): React.Node {
+-  const {logs} = props;
+-
+-  const onDismissWarns = () => {
+-    LogBoxData.clearWarnings();
+-  };
+-  const onDismissErrors = () => {
+-    LogBoxData.clearErrors();
+-  };
+-
+-  const setSelectedLog = (index: number): void => {
+-    LogBoxData.setSelectedLog(index);
+-  };
+-
+-  function openLog(log: LogBoxLog) {
+-    if (log.onNotificationPress) {
+-      log.onNotificationPress();
+-      return;
+-    }
+-    let index = logs.length - 1;
+-
+-    // Stop at zero because if we don't find any log, we'll open the first log.
+-    while (index > 0 && logs[index] !== log) {
+-      index -= 1;
+-    }
+-    setSelectedLog(index);
+-  }
+-
+-  if (logs.length === 0 || props.isDisabled === true) {
+-    return null;
+-  }
+-
+-  const warnings = logs.filter(log => log.level === 'warn');
+-  const errors = logs.filter(
+-    log => log.level === 'error' || log.level === 'fatal',
+-  );
+-  return (
+-    <SafeAreaView style={styles.list}>
+-      {warnings.length > 0 && (
+-        <View style={styles.toast}>
+-          <LogBoxLogNotification
+-            log={warnings[warnings.length - 1]}
+-            level="warn"
+-            totalLogCount={warnings.length}
+-            onPressOpen={() => openLog(warnings[warnings.length - 1])}
+-            onPressDismiss={onDismissWarns}
+-          />
+-        </View>
+-      )}
+-      {errors.length > 0 && (
+-        <View style={styles.toast}>
+-          <LogBoxLogNotification
+-            log={errors[errors.length - 1]}
+-            level="error"
+-            totalLogCount={errors.length}
+-            onPressOpen={() => openLog(errors[errors.length - 1])}
+-            onPressDismiss={onDismissErrors}
+-          />
+-        </View>
+-      )}
+-    </SafeAreaView>
+-  );
++  // Hide all LogBox notifications - custom modal will handle error display
++  return null;
+ }
+ 
+ const styles = StyleSheet.create({
+diff --git a/node_modules/react-native/Libraries/LogBox/UI/LogBoxInspector.js b/node_modules/react-native/Libraries/LogBox/UI/LogBoxInspector.js
+index be889b0..ef64ae2 100644
+--- a/node_modules/react-native/Libraries/LogBox/UI/LogBoxInspector.js
++++ b/node_modules/react-native/Libraries/LogBox/UI/LogBoxInspector.js
+@@ -18,7 +18,7 @@ import LogBoxInspectorFooter from './LogBoxInspectorFooter';
+ import LogBoxInspectorHeader from './LogBoxInspectorHeader';
+ import * as LogBoxStyle from './LogBoxStyle';
+ import * as React from 'react';
+-import {useEffect} from 'react';
++import {useEffect, useState} from 'react';
+ 
+ type Props = $ReadOnly<{
+   onDismiss: () => void,
+@@ -59,6 +59,48 @@ export default function LogBoxInspector(props: Props): React.Node {
+     LogBoxData.retrySymbolicateLogNow(log);
+   }
+ 
++  const [showFallback, setShowFallback] = useState(false);
++
++  /**
++   * Show an error by sending data to the TSX-side handler.
++   * @param {*} data
++   * @returns {boolean} true if custom handler handled the error, false otherwise
++   */
++  function showError(data) {
++    const g = globalThis;
++    g.__steercode = g.__steercode || {};
++    if (typeof g.__steercode.showError === 'function') {
++      const handled = g.__steercode.showError(data);
++      return handled === true; // Explicitly check for true
++    }
++    return false; // No handler available, not handled
++  }
++
++  // Try to show custom modal first, fall back to default UI if not handled
++  useEffect(() => {
++    if (log) {
++      const handled = showError({
++        log: log,
++        logs: logs,
++        selectedIndex: selectedIndex,
++        onDismiss: props.onDismiss,
++      });
++      if (handled) {
++        setTimeout(() => {
++          props.onDismiss();
++        }, 0);
++      }
++      setShowFallback(!handled);
++    } else {
++      setShowFallback(false);
++    }
++  }, [log, logs, selectedIndex, props.onDismiss]);
++
++  // Show custom error modal if available
++  if (!showFallback) {
++    return null;
++  }
++
+   if (log == null) {
+     return null;
+   }

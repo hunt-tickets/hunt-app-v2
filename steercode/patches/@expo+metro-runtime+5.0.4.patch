@@ -1,0 +1,77 @@
+diff --git a/node_modules/@expo/metro-runtime/src/error-overlay/ErrorOverlay.tsx b/node_modules/@expo/metro-runtime/src/error-overlay/ErrorOverlay.tsx
+index 983dc52..4dbcc45 100644
+--- a/node_modules/@expo/metro-runtime/src/error-overlay/ErrorOverlay.tsx
++++ b/node_modules/@expo/metro-runtime/src/error-overlay/ErrorOverlay.tsx
+@@ -36,6 +36,21 @@ export function LogBoxInspectorContainer() {
+   return <LogBoxInspector log={log} selectedLogIndex={selectedLogIndex} logs={logs} />;
+ }
+ 
++/**
++ * Show an error by sending data to the TSX-side handler.
++ * @param {*} data
++ * @returns {boolean} true if custom handler handled the error, false otherwise
++ */
++function showError(data: any): boolean {
++  const g = globalThis as any;
++  g.__steercode = g.__steercode || {};
++  if (typeof g.__steercode.showError === "function") {
++    const handled = g.__steercode.showError(data);
++    return handled === true; // Explicitly check for true
++  }
++  return false; // No handler available, not handled
++}
++
+ export function LogBoxInspector({
+   log,
+   selectedLogIndex,
+@@ -97,6 +112,33 @@ export function LogBoxInspector({
+     [log]
+   );
+   
++  const [showFallback, setShowFallback] = useState(false);
++
++  // Try to show custom modal first, fall back to default UI if not handled
++  useEffect(() => {
++    if (log) {
++      const handled = showError({
++        log: log,
++        logs: logs,
++        selectedIndex: selectedLogIndex,
++        onDismiss: onDismiss,
++      });
++      if (handled) {
++        setTimeout(() => {
++          onDismiss();
++        }, 0);
++      }
++      setShowFallback(!handled);
++    } else {
++      setShowFallback(false);
++    }
++  }, [log, logs, selectedLogIndex, onDismiss]);
++
++  // Show custom error modal if available
++  if (!showFallback) {
++    return null;
++  }
++
+   return (
+     <View style={styles.container}>
+       <ErrorOverlayHeader onSelectIndex={onChangeSelectedIndex} level={log.level} />
+diff --git a/node_modules/@expo/metro-runtime/src/error-overlay/toast/ErrorToastContainer.web.tsx b/node_modules/@expo/metro-runtime/src/error-overlay/toast/ErrorToastContainer.web.tsx
+index 73c1eed..052e3a7 100644
+--- a/node_modules/@expo/metro-runtime/src/error-overlay/toast/ErrorToastContainer.web.tsx
++++ b/node_modules/@expo/metro-runtime/src/error-overlay/toast/ErrorToastContainer.web.tsx
+@@ -17,10 +17,8 @@ import { useRejectionHandler } from '../useRejectionHandler';
+ export function ErrorToastContainer() {
+   useRejectionHandler();
+   const { logs, isDisabled } = useLogs();
+-  if (!logs.length || isDisabled) {
+-    return null;
+-  }
+-  return <ErrorToastStack logs={logs} />;
++  // Disabled: return null to prevent bottom toast from appearing
++  return null;
+ }
+ 
+ function ErrorToastStack({ logs }: { logs: LogBoxLog[] }) {

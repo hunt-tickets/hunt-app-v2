@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo-router/entry-classic.js b/node_modules/expo-router/entry-classic.js
+index d079ba7..27b42a6 100644
+--- a/node_modules/expo-router/entry-classic.js
++++ b/node_modules/expo-router/entry-classic.js
+@@ -2,6 +2,8 @@
+ // on web.
+ import '@expo/metro-runtime';
+ 
++import '../../.steercode/runtime/steercode-bootstrap';
++
+ import { App } from 'expo-router/build/qualified-entry';
+ import { renderRootComponent } from 'expo-router/build/renderRootComponent';
+ 
