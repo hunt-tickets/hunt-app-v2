@@ -185,59 +185,67 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      {/* Header with manual safe area top padding */}
-      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-        {isSearching ? (
-          <View style={styles.searchHeaderContainer}>
-            <View style={styles.searchBar}>
-              <Ionicons name="search-outline" size={18} color="#888888" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Buscar eventos, lugares o artistas"
-                placeholderTextColor="#888888"
-                value={query}
-                onChangeText={setQuery}
-                autoFocus
-                returnKeyType="search"
-              />
-              {query.length > 0 && (
-                <TouchableOpacity onPress={clearQuery} style={styles.clearButton}>
-                  <Ionicons name="close-circle" size={18} color="#888888" />
+
+      {/* Header with Gradient Overlay */}
+      <View style={[styles.headerOverlay, { paddingTop: insets.top + 20 }]}>
+        <LinearGradient
+          colors={['#0a0a0a', 'rgba(10, 10, 10, 0.8)', 'transparent']}
+          locations={[0, 0.7, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.headerContent}>
+          {isSearching ? (
+            <View style={styles.searchHeaderContainer}>
+              <View style={styles.searchBar}>
+                <Ionicons name="search-outline" size={18} color="#888888" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Buscar eventos, lugares o artistas"
+                  placeholderTextColor="#888888"
+                  value={query}
+                  onChangeText={setQuery}
+                  autoFocus
+                  returnKeyType="search"
+                />
+                {query.length > 0 && (
+                  <TouchableOpacity onPress={clearQuery} style={styles.clearButton}>
+                    <Ionicons name="close-circle" size={18} color="#888888" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              <TouchableOpacity style={styles.headerActionButton} onPress={toggleSearch}>
+                <Ionicons name="close" size={20} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <View style={styles.greetingContainer}>
+                <Text style={styles.greeting}>Hola, Luis Fernando</Text>
+                <Text style={styles.locationText}>{selectedLocation}</Text>
+              </View>
+              <View style={styles.headerActions}>
+                <TouchableOpacity
+                  style={styles.headerActionButton}
+                  onPress={() => router.push('/(tabs)/categories')}
+                >
+                  <Ionicons name="grid-outline" size={20} color="#ffffff" />
                 </TouchableOpacity>
-              )}
-            </View>
-            <TouchableOpacity style={styles.headerActionButton} onPress={toggleSearch}>
-              <Ionicons name="close" size={20} color="#ffffff" />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
-            <View style={styles.greetingContainer}>
-              <Text style={styles.greeting}>Hola, Luis Fernando</Text>
-              <Text style={styles.locationText}>{selectedLocation}</Text>
-            </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity 
-                style={styles.headerActionButton}
-                onPress={() => router.push('/(tabs)/categories')}
-              >
-                <Ionicons name="grid-outline" size={20} color="#ffffff" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.headerActionButton}
-                onPress={toggleLocationModal}
-              >
-                <Ionicons name="location-outline" size={20} color="#ffffff" />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.headerActionButton}
-                onPress={toggleSearch}
-              >
-                <Ionicons name="search-outline" size={20} color="#ffffff" />
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+                <TouchableOpacity
+                  style={styles.headerActionButton}
+                  onPress={toggleLocationModal}
+                >
+                  <Ionicons name="location-outline" size={20} color="#ffffff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.headerActionButton}
+                  onPress={toggleSearch}
+                >
+                  <Ionicons name="search-outline" size={20} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </View>
       </View>
 
       {/* Content */}
@@ -359,6 +367,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20, // Only bottom padding, top is handled manually
   },
+  headerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'relative',
+    zIndex: 1,
+  },
   searchHeaderContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -414,6 +438,7 @@ const styles = StyleSheet.create({
   searchContent: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 120, // Header height + safe area
   },
   searchHint: {
     ...Typography.subheadline,
@@ -479,6 +504,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingTop: 120, // Header height + safe area
   },
   eventCard: {
     marginBottom: 20,

@@ -6,10 +6,15 @@ import { FontFamily } from '../../constants/fonts';
 import React, { createContext, useContext, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import SupportModal from '../../components/support-modal';
-import { 
-  Zap, 
-  Calendar, 
-  MessageCircle, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
+import {
+  Zap,
+  Calendar,
+  MessageCircle,
   User,
   CalendarDays,
   MessageCircleMore,
@@ -160,32 +165,83 @@ function TabBarButton({ name, iconFocused, iconUnfocused, label, onPress }: TabB
   const focused = activeTab === (name === 'index' ? 'index' : name);
   const route = name === 'index' ? TABS_PREFIX : `${TABS_PREFIX}/${name}`;
 
+  // Animaciones para los indicadores
+  const iconScale = useSharedValue(focused ? 1.1 : 1);
+  const dotOpacity = useSharedValue(focused ? 1 : 0);
+  const dotScale = useSharedValue(focused ? 1 : 0.3);
+  const underlineWidth = useSharedValue(focused ? 1 : 0);
+
+  React.useEffect(() => {
+    iconScale.value = withSpring(focused ? 1.1 : 1, {
+      damping: 15,
+      stiffness: 200,
+    });
+    dotOpacity.value = withSpring(focused ? 1 : 0, {
+      damping: 12,
+      stiffness: 150,
+    });
+    dotScale.value = withSpring(focused ? 1 : 0.3, {
+      damping: 15,
+      stiffness: 200,
+    });
+    underlineWidth.value = withSpring(focused ? 1 : 0, {
+      damping: 15,
+      stiffness: 150,
+    });
+  }, [focused]);
+
+  const iconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: iconScale.value }],
+    opacity: focused ? 1 : 0.6,
+  }));
+
+  const dotAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: dotOpacity.value,
+    transform: [{ scale: dotScale.value }],
+  }));
+
+  const underlineAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleX: underlineWidth.value }],
+  }));
+
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (onPress) {
       onPress();
     } else {
       router.push(route);
     }
   };
-  
+
   return (
-    <TouchableOpacity 
-      style={styles.tabButton} 
+    <TouchableOpacity
+      style={styles.tabButton}
       onPress={handlePress}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
-      <View style={{ 
-        transform: [{ scale: focused ? 1.1 : 1 }],
-        marginTop: -16, // Move icons up more
-        alignItems: 'center',
-      }}>
-        <View style={{ opacity: focused ? 1 : 0.6 }}>
+      <View style={styles.tabButtonContent}>
+        {/* Dot Indicator */}
+        <Animated.View style={[styles.dotIndicator, dotAnimatedStyle]} />
+
+        {/* Icon Container */}
+        <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
           {React.cloneElement(
             (focused ? iconFocused : iconUnfocused) as React.ReactElement,
-            { size: 24, color: focused ? '#FFFFFF' : '#71767b', strokeWidth: focused ? 2.2 : 1.8 }
+            {
+              size: 22,
+              color: focused ? '#FFFFFF' : '#71767b',
+              strokeWidth: focused ? 2.4 : 1.8
+            }
           )}
-        </View>
+        </Animated.View>
+
+        {/* Label (opcional - descomentalo si quieres mostrar texto) */}
+        {/* <Text style={[styles.tabLabel, { color: focused ? '#FFFFFF' : '#71767b' }]}>
+          {label}
+        </Text> */}
+
+        {/* Underline Indicator */}
+        <Animated.View style={[styles.underlineIndicator, underlineAnimatedStyle]} />
       </View>
     </TouchableOpacity>
   );
@@ -203,6 +259,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    height: '100%',
+  },
+  tabButtonContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    height: '100%',
+    paddingVertical: 8,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -8,
+  },
+  dotIndicator: {
+    position: 'absolute',
+    top: 8,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
+  },
+  underlineIndicator: {
+    position: 'absolute',
+    bottom: 4,
+    width: 20,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: '#FFFFFF',
   },
   tabLabel: {
     fontSize: 10,

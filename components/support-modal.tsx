@@ -31,14 +31,35 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(height);
   const backdropOpacity = useSharedValue(0);
+  const modalScale = useSharedValue(0.3);
 
   React.useEffect(() => {
     if (visible) {
-      backdropOpacity.value = withTiming(1, { duration: 150 });
-      translateY.value = withTiming(0, { duration: 150 });
+      // Animación que crece desde abajo como iOS
+      backdropOpacity.value = withTiming(1, { duration: 250 });
+      modalScale.value = withSpring(1, {
+        damping: 18,
+        stiffness: 180,
+        mass: 0.8,
+      });
+      translateY.value = withSpring(0, {
+        damping: 25,
+        stiffness: 300,
+        mass: 0.8,
+      });
     } else {
-      backdropOpacity.value = withTiming(0, { duration: 150 });
-      translateY.value = withTiming(height, { duration: 150 });
+      // Animación de salida que se encoge hacia abajo
+      backdropOpacity.value = withTiming(0, { duration: 200 });
+      modalScale.value = withSpring(0.3, {
+        damping: 20,
+        stiffness: 400,
+        mass: 0.6,
+      });
+      translateY.value = withSpring(height * 0.3, {
+        damping: 20,
+        stiffness: 400,
+        mass: 0.6,
+      });
     }
   }, [visible]);
 
@@ -72,7 +93,34 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
     const subject = 'Soporte - App HUNT';
     const body = 'Hola,\n\nNecesito ayuda con la siguiente consulta:\n\n';
     const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
+
+    Linking.openURL(url);
+    onClose();
+  };
+
+  const handlePQR = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const email = 'pqr@hunt.app';
+    const subject = 'PQR - HUNT App';
+    const body = 'Petición/Queja/Reclamo/Sugerencia:\n\n';
+    const url = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    Linking.openURL(url);
+    onClose();
+  };
+
+  const handlePrivacyPolicy = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Aquí puedes abrir una URL específica de políticas de privacidad
+    const url = 'https://hunt.app/privacy-policy'; // Reemplazar con URL real
+    Linking.openURL(url);
+    onClose();
+  };
+
+  const handleTermsOfService = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Aquí puedes abrir una URL específica de términos y condiciones
+    const url = 'https://hunt.app/terms-of-service'; // Reemplazar con URL real
     Linking.openURL(url);
     onClose();
   };
@@ -82,10 +130,13 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
   }));
 
   const modalStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
+    transform: [
+      { translateY: translateY.value },
+      { scale: modalScale.value }
+    ],
   }));
 
-  const modalHeight = height * 0.35; // 35% of screen height
+  const modalHeight = height * 0.85; // 85% of screen height para asegurar que se vea todo
 
   return (
     <Modal transparent visible={visible} statusBarTranslucent>
@@ -105,7 +156,6 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>¿Necesitas ayuda?</Text>
-            <Text style={styles.subtitle}>Elige cómo prefieres contactarnos</Text>
           </View>
           
           {/* Contact Options */}
@@ -118,7 +168,7 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
               <Text style={styles.optionTitle}>WhatsApp</Text>
               <Text style={styles.optionDescription}>Respuesta inmediata</Text>
             </TouchableOpacity>
-            
+
             {/* Email Option */}
             <TouchableOpacity style={styles.optionColumn} onPress={handleEmail}>
               <View style={[styles.iconContainer, styles.emailIcon]}>
@@ -126,6 +176,45 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
               </View>
               <Text style={styles.optionTitle}>Correo electrónico</Text>
               <Text style={styles.optionDescription}>Hasta 2 días hábiles</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Additional Options */}
+          <View style={styles.additionalOptions}>
+            {/* PQR Option */}
+            <TouchableOpacity style={styles.additionalButton} onPress={handlePQR}>
+              <View style={[styles.additionalIconContainer, styles.pqrIcon]}>
+                <Ionicons name="clipboard-outline" size={18} color="#ffffff" />
+              </View>
+              <View style={styles.additionalTextContainer}>
+                <Text style={styles.additionalTitle}>PQRs</Text>
+                <Text style={styles.additionalDescription}>Peticiones, quejas y reclamos</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#999999" />
+            </TouchableOpacity>
+
+            {/* Privacy Policy */}
+            <TouchableOpacity style={styles.additionalButton} onPress={handlePrivacyPolicy}>
+              <View style={[styles.additionalIconContainer, styles.privacyIcon]}>
+                <Ionicons name="shield-outline" size={18} color="#ffffff" />
+              </View>
+              <View style={styles.additionalTextContainer}>
+                <Text style={styles.additionalTitle}>Políticas de privacidad</Text>
+                <Text style={styles.additionalDescription}>Información sobre privacidad</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#999999" />
+            </TouchableOpacity>
+
+            {/* Terms of Service */}
+            <TouchableOpacity style={styles.additionalButton} onPress={handleTermsOfService}>
+              <View style={[styles.additionalIconContainer, styles.termsIcon]}>
+                <Ionicons name="document-text-outline" size={18} color="#ffffff" />
+              </View>
+              <View style={styles.additionalTextContainer}>
+                <Text style={styles.additionalTitle}>Términos y condiciones</Text>
+                <Text style={styles.additionalDescription}>Condiciones de uso</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color="#999999" />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -141,19 +230,27 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   modal: {
-    backgroundColor: '#1a1a1a',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   handle: {
     width: 36,
     height: 4,
-    backgroundColor: '#333333',
+    backgroundColor: '#e5e5e5',
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 20,
@@ -163,12 +260,12 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.title2,
-    color: '#ffffff',
+    color: '#1a1a1a',
     marginBottom: 4,
   },
   subtitle: {
     ...Typography.body,
-    color: '#888888',
+    color: '#666666',
   },
   optionsRow: {
     flexDirection: 'row',
@@ -177,11 +274,11 @@ const styles = StyleSheet.create({
   optionColumn: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#f8f9fa',
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: '#e5e5e5',
   },
   iconContainer: {
     width: 48,
@@ -199,13 +296,55 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     ...Typography.bodyMedium,
-    color: '#ffffff',
+    color: '#1a1a1a',
     marginBottom: 4,
     textAlign: 'center',
   },
   optionDescription: {
     ...Typography.caption,
-    color: '#888888',
+    color: '#666666',
     textAlign: 'center',
+  },
+  additionalOptions: {
+    marginTop: 24,
+    gap: 8,
+  },
+  additionalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+  additionalIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  pqrIcon: {
+    backgroundColor: '#FF9500',
+  },
+  privacyIcon: {
+    backgroundColor: '#34C759',
+  },
+  termsIcon: {
+    backgroundColor: '#5856D6',
+  },
+  additionalTextContainer: {
+    flex: 1,
+  },
+  additionalTitle: {
+    ...Typography.bodyMedium,
+    color: '#1a1a1a',
+    marginBottom: 2,
+  },
+  additionalDescription: {
+    ...Typography.caption,
+    color: '#666666',
   },
 });
