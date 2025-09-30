@@ -29,27 +29,21 @@ export function AnimatedTabBar({ scrollY, children }: AnimatedTabBarProps) {
   });
 
   const overlayAnimatedStyle = useAnimatedStyle(() => {
-    const overlayOpacity = interpolate(
-      scrollY.value,
-      [0, 80, 160],
-      [0.7, 0.5, 0.3], // Ajustado para coincidir con los nuevos rangos
-      'clamp'
-    );
-
     return {
-      backgroundColor: `rgba(10, 10, 10, ${overlayOpacity})`,
+      backgroundColor: `rgba(10, 10, 10, 0.3)`,
     };
   });
+
 
   return (
     <Animated.View style={[styles.container, containerAnimatedStyle]}>
       <BlurView
-        intensity={80}
+        intensity={100}
         tint="dark"
         style={StyleSheet.absoluteFillObject}
       >
-        <Animated.View 
-          style={[StyleSheet.absoluteFillObject, overlayAnimatedStyle]} 
+        <Animated.View
+          style={[StyleSheet.absoluteFillObject, overlayAnimatedStyle]}
         />
       </BlurView>
       {children}

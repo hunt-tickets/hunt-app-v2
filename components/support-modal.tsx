@@ -8,6 +8,7 @@ import {
   Dimensions,
   Linking,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -31,34 +32,29 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(height);
   const backdropOpacity = useSharedValue(0);
-  const modalScale = useSharedValue(0.3);
+  const modalOpacity = useSharedValue(0);
+  const blurRadius = useSharedValue(0);
 
   React.useEffect(() => {
     if (visible) {
-      // Animación que crece desde abajo como iOS
-      backdropOpacity.value = withTiming(1, { duration: 250 });
-      modalScale.value = withSpring(1, {
-        damping: 18,
-        stiffness: 180,
-        mass: 0.8,
-      });
+      // Animación slide + fade estilo iOS 16 con blur
+      backdropOpacity.value = withTiming(1, { duration: 400 });
+      blurRadius.value = withTiming(1, { duration: 350 });
+      modalOpacity.value = withTiming(1, { duration: 300 });
       translateY.value = withSpring(0, {
-        damping: 25,
-        stiffness: 300,
-        mass: 0.8,
+        damping: 30,
+        stiffness: 400,
+        mass: 1,
       });
     } else {
-      // Animación de salida que se encoge hacia abajo
-      backdropOpacity.value = withTiming(0, { duration: 200 });
-      modalScale.value = withSpring(0.3, {
-        damping: 20,
-        stiffness: 400,
-        mass: 0.6,
-      });
-      translateY.value = withSpring(height * 0.3, {
-        damping: 20,
-        stiffness: 400,
-        mass: 0.6,
+      // Animación de salida suave con fade
+      backdropOpacity.value = withTiming(0, { duration: 300 });
+      blurRadius.value = withTiming(0, { duration: 200 });
+      modalOpacity.value = withTiming(0, { duration: 250 });
+      translateY.value = withSpring(height * 0.2, {
+        damping: 25,
+        stiffness: 500,
+        mass: 0.8,
       });
     }
   }, [visible]);
@@ -129,21 +125,30 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
     opacity: backdropOpacity.value,
   }));
 
-  const modalStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: modalScale.value }
-    ],
+  const blurStyle = useAnimatedStyle(() => ({
+    opacity: blurRadius.value,
   }));
 
-  const modalHeight = height * 0.85; // 85% of screen height para asegurar que se vea todo
+  const modalStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    opacity: modalOpacity.value,
+  }));
+
+  const modalHeight = height * 0.60; // 55% of screen height - tamaño más razonable
 
   return (
     <Modal transparent visible={visible} statusBarTranslucent>
       <View style={styles.container}>
         <Animated.View style={[styles.backdrop, backdropStyle]}>
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFillObject} 
+          <Animated.View style={[StyleSheet.absoluteFillObject, blurStyle]}>
+            <BlurView
+              intensity={15}
+              tint="dark"
+              style={StyleSheet.absoluteFillObject}
+            />
+          </Animated.View>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
             onPress={handleClose}
             activeOpacity={1}
           />
@@ -230,7 +235,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   modal: {
     backgroundColor: '#ffffff',
@@ -308,6 +313,7 @@ const styles = StyleSheet.create({
   additionalOptions: {
     marginTop: 24,
     gap: 8,
+    marginBottom: 36,
   },
   additionalButton: {
     flexDirection: 'row',

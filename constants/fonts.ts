@@ -2,17 +2,14 @@ import { Platform } from 'react-native';
 
 // Font Configuration - Change this to switch fonts globally
 const FONT_CONFIG = {
-  name: 'SpaceGrotesk', // Current font family
+  name: 'SourceSans3', // Source Sans 3 font family
   weights: {
-    100: 'SpaceGrotesk_300Light', // Fallback to 300 since 100/200 don't exist
-    200: 'SpaceGrotesk_300Light', // Fallback to 300 since 100/200 don't exist
-    300: 'SpaceGrotesk_300Light',
-    400: 'SpaceGrotesk_400Regular',
-    500: 'SpaceGrotesk_500Medium',
-    600: 'SpaceGrotesk_600SemiBold',
-    700: 'SpaceGrotesk_700Bold',
-    800: 'SpaceGrotesk_700Bold', // Fallback to 700 since 800/900 don't exist
-    900: 'SpaceGrotesk_700Bold', // Fallback to 700 since 800/900 don't exist
+    200: 'SourceSans3_200ExtraLight',
+    300: 'SourceSans3_300Light',
+    400: 'SourceSans3_400Regular',
+    500: 'SourceSans3_500Medium',
+    600: 'SourceSans3_600SemiBold',
+    700: 'SourceSans3_700Bold',
   }
 };
 
@@ -55,87 +52,75 @@ function createFontFamily(config: typeof FONT_CONFIG) {
       web: config.weights[700],
       default: config.weights[700],
     }),
-    ExtraBold: Platform.select({
-      ios: config.weights[800],
-      android: config.weights[800],
-      web: config.weights[800],
-      default: config.weights[800],
-    }),
-    Black: Platform.select({
-      ios: config.weights[900],
-      android: config.weights[900],
-      web: config.weights[900],
-      default: config.weights[900],
-    }),
   };
 }
 
 export const FontFamily = createFontFamily(FONT_CONFIG);
 
-// Typography scale - automatically uses current font
+// Typography scale - automatically uses current font with varied weights
 export const Typography = {
-  // Headlines
+  // Headlines - Using Medium to SemiBold
   title1: {
-    fontFamily: FontFamily.Bold,
-    fontSize: 36, // increased from 28
-    lineHeight: 47, // 130% of fontSize
+    fontFamily: FontFamily.SemiBold,
+    fontSize: 36,
+    lineHeight: 47,
     letterSpacing: -0.5,
   },
   title2: {
-    fontFamily: FontFamily.Bold,
-    fontSize: 28, // increased from 22
-    lineHeight: 36, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontFamily: FontFamily.Medium,
+    fontSize: 28,
+    lineHeight: 36,
+    letterSpacing: -0.3,
   },
   title3: {
-    fontFamily: FontFamily.SemiBold,
-    fontSize: 24, // increased from 20
-    lineHeight: 31, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontFamily: FontFamily.Medium,
+    fontSize: 24,
+    lineHeight: 31,
+    letterSpacing: -0.2,
   },
-  // Body text
+  // Body text - Using Light to Regular
   body: {
-    fontFamily: FontFamily.Regular,
-    fontSize: 20, // increased from 17
-    lineHeight: 26, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontFamily: FontFamily.Light,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: 0,
   },
   bodyMedium: {
-    fontFamily: FontFamily.Medium,
-    fontSize: 20, // increased from 17
-    lineHeight: 26, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontFamily: FontFamily.Regular,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: 0,
   },
   bodySemiBold: {
-    fontFamily: FontFamily.SemiBold,
-    fontSize: 20, // increased from 17
-    lineHeight: 26, // 130% of fontSize
-    letterSpacing: -0.5,
-  },
-  // Small text
-  subheadline: {
     fontFamily: FontFamily.Medium,
-    fontSize: 18, // increased from 15
-    lineHeight: 23, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontSize: 20,
+    lineHeight: 26,
+    letterSpacing: -0.1,
+  },
+  // Small text - Using ExtraLight to Light
+  subheadline: {
+    fontFamily: FontFamily.Regular,
+    fontSize: 18,
+    lineHeight: 23,
+    letterSpacing: 0,
   },
   footnote: {
-    fontFamily: FontFamily.Regular,
-    fontSize: 16, // increased from 13
-    lineHeight: 21, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontFamily: FontFamily.Light,
+    fontSize: 16,
+    lineHeight: 21,
+    letterSpacing: 0.1,
   },
   caption: {
-    fontFamily: FontFamily.Medium,
-    fontSize: 15, // increased from 12
-    lineHeight: 20, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontFamily: FontFamily.Light,
+    fontSize: 15,
+    lineHeight: 20,
+    letterSpacing: 0.1,
   },
-  // Small labels
+  // Small labels - Using ExtraLight
   caption2: {
-    fontFamily: FontFamily.Medium,
-    fontSize: 14, // increased from 11
-    lineHeight: 18, // 130% of fontSize
-    letterSpacing: -0.5,
+    fontFamily: FontFamily.ExtraLight,
+    fontSize: 14,
+    lineHeight: 18,
+    letterSpacing: 0.2,
   },
 };

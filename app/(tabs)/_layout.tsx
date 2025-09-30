@@ -1,4 +1,6 @@
 import { Tabs, useRouter, useSegments } from 'expo-router';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+import { DynamicColorIOS } from 'react-native';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { AnimatedTabBar } from '../../components/animated-tab-bar';
 import { useScrollAnimation } from '../../hooks/use-scroll-animation';
@@ -11,15 +13,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import {
-  Zap,
-  Calendar,
-  MessageCircle,
-  User,
-  CalendarDays,
-  MessageCircleMore,
-  UserCheck
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const ScrollContext = createContext<ReturnType<typeof useScrollAnimation> | null>(null);
 
@@ -34,7 +28,67 @@ export function useScrollContext() {
 export default function TabLayout() {
   const scrollAnimation = useScrollAnimation();
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [useNativeTabs, setUseNativeTabs] = useState(Platform.OS === 'ios'); // Enable on iOS
+  const segments = useSegments();
+  const router = useRouter();
 
+  // Native Tabs Implementation (iOS 26 Liquid Glass)
+  if (useNativeTabs && Platform.OS === 'ios') {
+    return (
+      <ScrollContext.Provider value={scrollAnimation}>
+        <View style={{ flex: 1 }}>
+          <NativeTabs
+            backgroundColor={DynamicColorIOS({
+              dark: 'rgba(0, 0, 0, 0.8)',
+              light: 'rgba(255, 255, 255, 0.8)'
+            })}
+            tintColor={DynamicColorIOS({
+              dark: '#007AFF',
+              light: '#007AFF'
+            })}
+          >
+            <NativeTabs.Trigger name="index">
+              <Label>Inicio</Label>
+              <Icon sf="house.fill" />
+            </NativeTabs.Trigger>
+
+            <NativeTabs.Trigger name="entradas">
+              <Label>Entradas</Label>
+              <Icon sf="ticket.fill" />
+            </NativeTabs.Trigger>
+
+            <NativeTabs.Trigger name="soporte" onPress={() => setShowSupportModal(true)}>
+              <Label>Soporte</Label>
+              <Icon sf="message.fill" />
+            </NativeTabs.Trigger>
+
+            <NativeTabs.Trigger name="ajustes">
+              <Label>Ajustes</Label>
+              <Icon sf="gearshape.fill" />
+            </NativeTabs.Trigger>
+
+            {/* Native Search Tab - Uses Stack with headerSearchBarOptions */}
+            <NativeTabs.Trigger
+              name="search"
+              role="search"
+              style={{ marginLeft: 'auto' }}
+            >
+              <Label>Buscar</Label>
+              <Icon sf="magnifyingglass" />
+            </NativeTabs.Trigger>
+          </NativeTabs>
+
+          {/* Support Modal */}
+          <SupportModal
+            visible={showSupportModal}
+            onClose={() => setShowSupportModal(false)}
+          />
+        </View>
+      </ScrollContext.Provider>
+    );
+  }
+
+  // Fallback to Custom Tabs
   return (
     <ScrollContext.Provider value={scrollAnimation}>
       <View style={{ flex: 1 }}>
@@ -101,42 +155,51 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="native-components"
+        options={{
+          href: null, // Hide from tab bar
+          title: 'Native Components'
+        }}
+      />
+      <Tabs.Screen
         name="event"
         options={{
           href: null, // Hide from tab bar
         }}
       />
     </Tabs>
-        {/* Custom Animated Tab Bar */}
-        <AnimatedTabBar scrollY={scrollAnimation.scrollY}>
-          <View style={styles.customTabBar}>
-            <TabBarButton 
-              name="index" 
-              iconFocused={<Zap />} 
-              iconUnfocused={<Zap />} 
-              label="Inicio"
-            />
-            <TabBarButton 
-              name="entradas" 
-              iconFocused={<CalendarDays />} 
-              iconUnfocused={<Calendar />} 
-              label="Entradas"
-            />
-            <TabBarButton 
-              name="soporte" 
-              iconFocused={<MessageCircleMore />} 
-              iconUnfocused={<MessageCircle />} 
-              label="Soporte"
-              onPress={() => setShowSupportModal(true)}
-            />
-            <TabBarButton 
-              name="ajustes" 
-              iconFocused={<UserCheck />} 
-              iconUnfocused={<User />} 
-              label="Ajustes"
-            />
-          </View>
-        </AnimatedTabBar>
+        {/* Custom Animated Tab Bar - Hide on administrar-eventos */}
+        {segments[1] !== 'administrar-eventos' && (
+          <AnimatedTabBar scrollY={scrollAnimation.scrollY}>
+            <View style={styles.customTabBar}>
+              <TabBarButton
+                name="index"
+                iconFocused={<Ionicons name="home" />}
+                iconUnfocused={<Ionicons name="home-outline" />}
+                label="Inicio"
+              />
+              <TabBarButton
+                name="entradas"
+                iconFocused={<Ionicons name="ticket" />}
+                iconUnfocused={<Ionicons name="ticket-outline" />}
+                label="Entradas"
+              />
+              <TabBarButton
+                name="soporte"
+                iconFocused={<Ionicons name="chatbubbles" />}
+                iconUnfocused={<Ionicons name="chatbubbles-outline" />}
+                label="Soporte"
+                onPress={() => setShowSupportModal(true)}
+              />
+              <TabBarButton
+                name="ajustes"
+                iconFocused={<Ionicons name="settings" />}
+                iconUnfocused={<Ionicons name="settings-outline" />}
+                label="Ajustes"
+              />
+            </View>
+          </AnimatedTabBar>
+        )}
         
         {/* Support Modal */}
         <SupportModal 
@@ -220,28 +283,22 @@ function TabBarButton({ name, iconFocused, iconUnfocused, label, onPress }: TabB
       activeOpacity={0.8}
     >
       <View style={styles.tabButtonContent}>
-        {/* Dot Indicator */}
-        <Animated.View style={[styles.dotIndicator, dotAnimatedStyle]} />
-
         {/* Icon Container */}
         <Animated.View style={[styles.iconContainer, iconAnimatedStyle]}>
           {React.cloneElement(
             (focused ? iconFocused : iconUnfocused) as React.ReactElement,
             {
-              size: 22,
-              color: focused ? '#FFFFFF' : '#71767b',
-              strokeWidth: focused ? 2.4 : 1.8
+              size: 28,
+              color: focused ? '#FFFFFF' : '#71767b'
             }
           )}
         </Animated.View>
 
-        {/* Label (opcional - descomentalo si quieres mostrar texto) */}
-        {/* <Text style={[styles.tabLabel, { color: focused ? '#FFFFFF' : '#71767b' }]}>
+        {/* Label */}
+        <Text style={[styles.tabLabel, { color: focused ? '#FFFFFF' : '#71767b' }]}>
           {label}
-        </Text> */}
+        </Text>
 
-        {/* Underline Indicator */}
-        <Animated.View style={[styles.underlineIndicator, underlineAnimatedStyle]} />
       </View>
     </TouchableOpacity>
   );
@@ -266,12 +323,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     height: '100%',
-    paddingVertical: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
   },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -8,
+    marginBottom: 8,
   },
   dotIndicator: {
     position: 'absolute',
@@ -283,7 +341,7 @@ const styles = StyleSheet.create({
   },
   underlineIndicator: {
     position: 'absolute',
-    bottom: 4,
+    bottom: -2,
     width: 20,
     height: 2,
     borderRadius: 1,
@@ -291,8 +349,10 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 10,
-    fontWeight: '600',
-    marginTop: 4,
+    fontWeight: '500',
     letterSpacing: 0.1,
+    textAlign: 'center',
+    lineHeight: 12,
+    marginBottom: 4,
   },
 });

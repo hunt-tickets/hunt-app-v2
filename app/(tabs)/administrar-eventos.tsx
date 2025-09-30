@@ -32,47 +32,43 @@ export default function AdministrarEventosScreen() {
     publicados: [
       {
         id: 1,
-        title: 'Festival de Música Electrónica',
-        date: '15 Oct 2024',
-        location: 'Medellín',
-        attendees: 245,
-        revenue: 12450000,
-        status: 'active',
-        image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=300&fit=crop',
+        title: 'Faena',
+        subtitle: 'SECRET LOCATION',
+        dates: [
+          { location: 'ROCHA • PLAYA PRIVADA', date: 'MIE 16 OCT' },
+          { location: 'PROVENZA', date: 'JUE 10 OCT' },
+          { location: 'BAMBORA', date: 'VIE 17 OCT' }
+        ],
+        status: 'STATUS',
+        image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=600&fit=crop',
       },
       {
         id: 2,
-        title: 'Stand Up Comedy Night',
-        date: '22 Oct 2024',
-        location: 'Bogotá',
-        attendees: 89,
-        revenue: 3560000,
-        status: 'active',
-        image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+        title: 'NN ROSARIO & SABANA',
+        subtitle: 'SECRET LOCATION',
+        dates: [
+          { location: 'ROCHA • PLAYA PRIVADA', date: 'MIE 16 OCT' },
+          { location: 'PROVENZA', date: 'JUE 10 OCT' },
+          { location: 'BAMBORA', date: 'VIE 17 OCT' }
+        ],
+        status: 'ACTIVO',
+        image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=600&fit=crop',
       },
-    ],
-    borradores: [
       {
         id: 3,
-        title: 'Concierto Acústico',
-        date: 'Sin fecha',
-        location: 'Sin definir',
-        status: 'draft',
-        image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop',
+        title: 'NN CESA & SENIORS',
+        subtitle: 'SECRET LOCATION',
+        dates: [
+          { location: 'DIA DE LANCHA • PLAYA PRIVADA', date: 'MIE 08 OCT' },
+          { location: 'PROVENZA WHITE PARTY', date: 'JUE 09 OCT' },
+          { location: 'SECRET LOCATION', date: 'VIE 10 OCT' }
+        ],
+        status: 'ACTIVO',
+        image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=600&fit=crop',
       },
     ],
-    archivados: [
-      {
-        id: 4,
-        title: 'Festival de Jazz 2024',
-        date: '10 Sep 2024',
-        location: 'Cartagena',
-        attendees: 156,
-        revenue: 7800000,
-        status: 'archived',
-        image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&h=300&fit=crop',
-      },
-    ],
+    borradores: [],
+    archivados: [],
   };
 
   const handleBackPress = () => {
@@ -113,37 +109,20 @@ export default function AdministrarEventosScreen() {
       
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="chevron-back" size={24} color="#ffffff" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Administrar Eventos</Text>
-        <TouchableOpacity style={styles.createButton} onPress={handleCreateEvent}>
-          <Ionicons name="add" size={24} color="#ffffff" />
+        <Text style={styles.title}>Mis eventos</Text>
+        <TouchableOpacity style={styles.closeButton} onPress={handleBackPress}>
+          <Ionicons name="close" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
-      {/* Tab Bar */}
-      <View style={styles.tabBar}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, selectedTab === tab.key && styles.activeTab]}
-            onPress={() => {
-              Haptics.selectionAsync();
-              setSelectedTab(tab.key);
-            }}
-          >
-            <Text style={[styles.tabText, selectedTab === tab.key && styles.activeTabText]}>
-              {tab.label}
-            </Text>
-            <View style={[styles.badge, selectedTab === tab.key && styles.activeBadge]}>
-              <Text style={[styles.badgeText, selectedTab === tab.key && styles.activeBadgeText]}>
-                {tab.count}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={20} color="#666666" />
+          <Text style={styles.searchPlaceholder}>Buscar evento</Text>
+        </View>
       </View>
+
 
       {/* Content */}
       <ScrollView
@@ -176,51 +155,55 @@ export default function AdministrarEventosScreen() {
         ) : (
           <View style={styles.eventsList}>
             {currentEvents.map((event) => (
-              <TouchableOpacity
-                key={event.id}
-                style={styles.eventCard}
-                onPress={() => handleEventPress(event)}
-              >
-                <Image source={{ uri: event.image }} style={styles.eventImage} />
-                <View style={styles.eventInfo}>
-                  <View style={styles.eventHeader}>
-                    <Text style={styles.eventTitle}>{event.title}</Text>
-                    <View style={styles.statusContainer}>
-                      <View style={[styles.statusDot, 
-                        event.status === 'active' && styles.activeDot,
-                        event.status === 'draft' && styles.draftDot,
-                        event.status === 'archived' && styles.archivedDot
-                      ]} />
-                    </View>
-                  </View>
-                  <Text style={styles.eventDate}>{event.date}</Text>
-                  <Text style={styles.eventLocation}>{event.location}</Text>
-                  
-                  {event.status !== 'draft' && (
-                    <View style={styles.eventStats}>
-                      <View style={styles.stat}>
-                        <Ionicons name="people-outline" size={16} color="#888888" />
-                        <Text style={styles.statText}>
-                          {event.attendees || 0} asistentes
-                        </Text>
-                      </View>
-                      {event.revenue && (
-                        <View style={styles.stat}>
-                          <Ionicons name="card-outline" size={16} color="#888888" />
-                          <Text style={styles.statText}>
-                            {formatCurrency(event.revenue)}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  )}
+              <View key={event.id} style={styles.eventCard}>
+                {/* Status Badge */}
+                <View style={styles.statusBadge}>
+                  <Ionicons name="settings" size={14} color="#ffffff" />
+                  <Text style={styles.statusText}>{event.status}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#666666" />
-              </TouchableOpacity>
+
+                {/* Event Image */}
+                <Image source={{ uri: event.image }} style={styles.eventImage} />
+
+                {/* Event Content */}
+                <View style={styles.eventContent}>
+                  {/* Dates */}
+                  <View style={styles.datesContainer}>
+                    {event.dates.map((dateInfo, index) => (
+                      <View key={index} style={styles.dateRow}>
+                        <Text style={styles.dateLocation}>{dateInfo.location}</Text>
+                        <Text style={styles.dateText}>{dateInfo.date}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Event Title */}
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+
+                  {/* Ver detalles button */}
+                  <TouchableOpacity
+                    style={styles.detailsButton}
+                    onPress={() => handleEventPress(event)}
+                  >
+                    <Text style={styles.detailsText}>Ver detalles</Text>
+                    <Ionicons name="chevron-forward" size={16} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Share button */}
+                <TouchableOpacity style={styles.shareButton}>
+                  <Ionicons name="share-outline" size={20} color="#ffffff" />
+                </TouchableOpacity>
+              </View>
             ))}
           </View>
         )}
       </ScrollView>
+
+      {/* Create Event Button */}
+      <TouchableOpacity style={styles.createEventFloatingButton} onPress={handleCreateEvent}>
+        <Text style={styles.createEventButtonText}>Crear nuevo evento</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -237,27 +220,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  backButton: {
+  title: {
+    ...Typography.title1,
+    color: '#ffffff',
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  closeButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
     borderColor: '#333333',
   },
-  title: {
-    ...Typography.title2,
-    color: '#ffffff',
-  },
-  createButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#00D68F',
-    justifyContent: 'center',
-    alignItems: 'center',
+  searchPlaceholder: {
+    ...Typography.body,
+    color: '#666666',
+    marginLeft: 12,
   },
   tabBar: {
     flexDirection: 'row',
@@ -340,78 +334,120 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   eventsList: {
-    paddingBottom: 40,
+    paddingBottom: 120,
   },
   eventCard: {
-    flexDirection: 'row',
     backgroundColor: '#1a1a1a',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 20,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#333333',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    zIndex: 2,
+    gap: 6,
+  },
+  statusText: {
+    ...Typography.caption2,
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   eventImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    marginRight: 16,
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
   },
-  eventInfo: {
-    flex: 1,
+  eventContent: {
+    padding: 20,
   },
-  eventHeader: {
+  datesContainer: {
+    marginBottom: 16,
+  },
+  dateRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  eventTitle: {
-    ...Typography.bodyMedium,
-    color: '#ffffff',
-    flex: 1,
-    marginRight: 8,
-  },
-  statusContainer: {
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#666666',
-  },
-  activeDot: {
-    backgroundColor: '#00D68F',
-  },
-  draftDot: {
-    backgroundColor: '#FFA500',
-  },
-  archivedDot: {
-    backgroundColor: '#666666',
-  },
-  eventDate: {
-    ...Typography.caption,
-    color: '#888888',
-    marginBottom: 2,
-  },
-  eventLocation: {
-    ...Typography.caption,
-    color: '#888888',
     marginBottom: 8,
   },
-  eventStats: {
-    flexDirection: 'row',
-    gap: 16,
+  dateLocation: {
+    ...Typography.caption,
+    color: '#8A2BE2',
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    flex: 1,
   },
-  stat: {
+  dateText: {
+    ...Typography.caption,
+    color: '#8A2BE2',
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  eventTitle: {
+    ...Typography.title2,
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 16,
+  },
+  detailsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 8,
   },
-  statText: {
-    ...Typography.caption2,
-    color: '#888888',
+  detailsText: {
+    ...Typography.body,
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  shareButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  createEventFloatingButton: {
+    position: 'absolute',
+    bottom: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  createEventButtonText: {
+    ...Typography.bodyMedium,
+    color: '#0a0a0a',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

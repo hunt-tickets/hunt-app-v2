@@ -4,15 +4,19 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Pressable,
+  Button,
+  Alert,
   Image,
   Dimensions,
   RefreshControl,
   Share,
-  Alert,
   TextInput,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -23,6 +27,9 @@ import * as Location from 'expo-location';
 import { useScrollContext } from './_layout';
 import { Typography, FontFamily } from '../../constants/fonts';
 import LocationSelectorModal from '../../components/location-selector-modal';
+import SideMenu from '../../components/side-menu';
+import { NativeButton } from '../../components/native-button';
+// Native Tabs work perfectly, keeping header custom for now
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +45,7 @@ export default function HomeScreen() {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('Medellín'); // Default fallback
   const [isDetectingInitialLocation, setIsDetectingInitialLocation] = useState(false);
+  const [showSideMenu, setShowSideMenu] = useState(false);
   const { scrollY, onScroll } = useScrollContext();
   const insets = useSafeAreaInsets();
 
@@ -220,8 +228,44 @@ export default function HomeScreen() {
           ) : (
             <>
               <View style={styles.greetingContainer}>
-                <Text style={styles.greeting}>Hola, Luis Fernando</Text>
-                <Text style={styles.locationText}>{selectedLocation}</Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.liquidGlassButton,
+                    pressed && Platform.select({
+                      ios: {
+                        transform: [{ scale: 0.95 }],
+                      },
+                      android: { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
+                    })
+                  ]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setShowSideMenu(true);
+                  }}
+                  android_ripple={{
+                    color: 'rgba(255, 255, 255, 0.3)',
+                    borderless: true
+                  }}
+                >
+                  <BlurView
+                    intensity={60}
+                    tint="extraLight"
+                    style={styles.liquidGlassBlur}
+                  >
+                    <View style={styles.liquidGlassOverlay}>
+                      <Ionicons name="menu" size={22} color="rgba(255, 255, 255, 0.95)" />
+                    </View>
+                  </BlurView>
+                </Pressable>
+                <View style={styles.greetingText}>
+                  <TouchableOpacity
+                    style={styles.locationContainer}
+                    onPress={toggleLocationModal}
+                  >
+                    <Text style={styles.greeting}>{selectedLocation}</Text>
+                    <Ionicons name="chevron-down" size={20} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
               </View>
               <View style={styles.headerActions}>
                 <TouchableOpacity
@@ -232,20 +276,36 @@ export default function HomeScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.headerActionButton}
-                  onPress={toggleLocationModal}
-                >
-                  <Ionicons name="location-outline" size={20} color="#ffffff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.headerActionButton}
                   onPress={toggleSearch}
                 >
                   <Ionicons name="search-outline" size={20} color="#ffffff" />
+                </TouchableOpacity>
+                {/* TRULY Native iOS Button (UIButton) */}
+                <View style={styles.trueNativeButton}>
+                  <Button
+                    title="🧪"
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      router.push('/(tabs)/native-components');
+                    }}
+                    color={Platform.OS === 'ios' ? '#007AFF' : '#2196F3'}
+                  />
+                </View>
+                {/* Native iOS Tab Navigation Test */}
+                <TouchableOpacity
+                  style={styles.navigationTestButton}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    Alert.alert('Tab Navigation', 'Testing native tab navigation behavior');
+                  }}
+                >
+                  <Text style={styles.navigationTestText}>✨</Text>
                 </TouchableOpacity>
               </View>
             </>
           )}
         </View>
+
       </View>
 
       {/* Content */}
@@ -289,8 +349,9 @@ export default function HomeScreen() {
         </ScrollView>
       ) : (
         /* Events Feed */
-        <Animated.ScrollView 
-          style={styles.scrollView} 
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -350,6 +411,12 @@ export default function HomeScreen() {
         onClose={() => setShowLocationModal(false)}
         onSelectLocation={handleLocationSelect}
         currentLocation={selectedLocation}
+      />
+
+      {/* Side Menu */}
+      <SideMenu
+        visible={showSideMenu}
+        onClose={() => setShowSideMenu(false)}
       />
     </View>
   );
@@ -411,15 +478,65 @@ const styles = StyleSheet.create({
   },
   greetingContainer: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  menuButton: {
+    width: 40,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  liquidGlassButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  liquidGlassBlur: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  liquidGlassOverlay: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 20,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  greetingText: {
+    flex: 1,
   },
   greeting: {
     ...Typography.title2,
     color: '#ffffff',
   },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   locationText: {
     ...Typography.caption,
     color: '#888888',
-    marginTop: 2,
   },
   headerActions: {
     flexDirection: 'row',
@@ -434,6 +551,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#333333',
+  },
+  nativeButtonContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  iosSystemButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // iOS system button styling
+    borderWidth: 0,
+  },
+  androidSystemButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+  },
+  trueNativeButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  navigationTestButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  navigationTestText: {
+    fontSize: 18,
+    color: '#007AFF',
   },
   searchContent: {
     flex: 1,
@@ -503,8 +667,11 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollViewContent: {
     paddingHorizontal: 20,
-    paddingTop: 120, // Header height + safe area
+    paddingTop: 140, // Header height + extra spacing
+    paddingBottom: 120, // Bottom spacing for tab bar + extra
   },
   eventCard: {
     marginBottom: 20,
