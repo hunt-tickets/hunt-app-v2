@@ -7,13 +7,13 @@ import { useScrollAnimation } from '../../hooks/use-scroll-animation';
 import { FontFamily } from '../../constants/fonts';
 import React, { createContext, useContext, useState } from 'react';
 import * as Haptics from 'expo-haptics';
-import SupportModal from '../../components/support-modal';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import { HomeIcon, TicketIcon, ChatIcon, SettingsIcon } from '../../components/minimal-icons';
 
 const ScrollContext = createContext<ReturnType<typeof useScrollAnimation> | null>(null);
 
@@ -27,7 +27,6 @@ export function useScrollContext() {
 
 export default function TabLayout() {
   const scrollAnimation = useScrollAnimation();
-  const [showSupportModal, setShowSupportModal] = useState(false);
   const [useNativeTabs, setUseNativeTabs] = useState(Platform.OS === 'ios'); // Enable on iOS
   const segments = useSegments();
   const router = useRouter();
@@ -43,28 +42,29 @@ export default function TabLayout() {
               light: 'rgba(255, 255, 255, 0.8)'
             })}
             tintColor={DynamicColorIOS({
-              dark: '#007AFF',
-              light: '#007AFF'
+              dark: '#FFFFFF',
+              light: '#000000'
             })}
           >
-            <NativeTabs.Trigger name="index">
-              <Label>Inicio</Label>
-              <Icon sf="house.fill" />
+            <NativeTabs.Trigger
+              name="index"
+              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+            >
+              <Icon sf="square.stack" />
             </NativeTabs.Trigger>
 
-            <NativeTabs.Trigger name="entradas">
-              <Label>Entradas</Label>
-              <Icon sf="ticket.fill" />
+            <NativeTabs.Trigger
+              name="billetera"
+              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+            >
+              <Icon sf="creditcard" />
             </NativeTabs.Trigger>
 
-            <NativeTabs.Trigger name="soporte" onPress={() => setShowSupportModal(true)}>
-              <Label>Soporte</Label>
-              <Icon sf="message.fill" />
-            </NativeTabs.Trigger>
-
-            <NativeTabs.Trigger name="ajustes">
-              <Label>Ajustes</Label>
-              <Icon sf="gearshape.fill" />
+            <NativeTabs.Trigger
+              name="ajustes"
+              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+            >
+              <Icon sf="slider.horizontal.3" />
             </NativeTabs.Trigger>
 
             {/* Native Search Tab - Uses Stack with headerSearchBarOptions */}
@@ -72,17 +72,12 @@ export default function TabLayout() {
               name="search"
               role="search"
               style={{ marginLeft: 'auto' }}
+              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
             >
-              <Label>Buscar</Label>
               <Icon sf="magnifyingglass" />
             </NativeTabs.Trigger>
           </NativeTabs>
 
-          {/* Support Modal */}
-          <SupportModal
-            visible={showSupportModal}
-            onClose={() => setShowSupportModal(false)}
-          />
         </View>
       </ScrollContext.Provider>
     );
@@ -94,7 +89,7 @@ export default function TabLayout() {
       <View style={{ flex: 1 }}>
         <Tabs
           screenOptions={{
-            tabBarActiveTintColor: '#1d9bf0',
+            tabBarActiveTintColor: '#FFFFFF',
             tabBarInactiveTintColor: '#71767b',
             tabBarStyle: {
               display: 'none', // Hide default tab bar
@@ -105,19 +100,20 @@ export default function TabLayout() {
               marginTop: 4,
               letterSpacing: 0.1,
             },
-            headerShown: false,
           }}
         >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Inicio',
+          headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="entradas"
+        name="billetera"
         options={{
-          title: 'Entradas',
+          title: 'Billetera',
+          headerShown: false,
         }}
       />
       <Tabs.Screen
@@ -125,12 +121,14 @@ export default function TabLayout() {
         options={{
           title: 'Soporte',
           href: null, // Hide from navigation since it's now a modal
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="ajustes"
         options={{
           title: 'Ajustes',
+          headerShown: false,
         }}
       />
       {/* Categories accessible via home screen */}
@@ -138,6 +136,7 @@ export default function TabLayout() {
         name="categories"
         options={{
           href: null, // Hide from tab bar
+          headerShown: false,
         }}
       />
       {/* Administrar eventos accessible via settings */}
@@ -145,6 +144,7 @@ export default function TabLayout() {
         name="administrar-eventos"
         options={{
           href: null, // Hide from tab bar
+          headerShown: false,
         }}
       />
       {/* Hidden tabs - accessible via navigation */}
@@ -152,19 +152,14 @@ export default function TabLayout() {
         name="search"
         options={{
           href: null, // Hide from tab bar
-        }}
-      />
-      <Tabs.Screen
-        name="native-components"
-        options={{
-          href: null, // Hide from tab bar
-          title: 'Native Components'
+          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="event"
         options={{
           href: null, // Hide from tab bar
+          headerShown: false,
         }}
       />
     </Tabs>
@@ -174,38 +169,25 @@ export default function TabLayout() {
             <View style={styles.customTabBar}>
               <TabBarButton
                 name="index"
-                iconFocused={<Ionicons name="home" />}
-                iconUnfocused={<Ionicons name="home-outline" />}
+                iconFocused={<HomeIcon />}
+                iconUnfocused={<HomeIcon />}
                 label="Inicio"
               />
               <TabBarButton
-                name="entradas"
-                iconFocused={<Ionicons name="ticket" />}
-                iconUnfocused={<Ionicons name="ticket-outline" />}
-                label="Entradas"
-              />
-              <TabBarButton
-                name="soporte"
-                iconFocused={<Ionicons name="chatbubbles" />}
-                iconUnfocused={<Ionicons name="chatbubbles-outline" />}
-                label="Soporte"
-                onPress={() => setShowSupportModal(true)}
+                name="billetera"
+                iconFocused={<TicketIcon />}
+                iconUnfocused={<TicketIcon />}
+                label="Billetera"
               />
               <TabBarButton
                 name="ajustes"
-                iconFocused={<Ionicons name="settings" />}
-                iconUnfocused={<Ionicons name="settings-outline" />}
+                iconFocused={<SettingsIcon />}
+                iconUnfocused={<SettingsIcon />}
                 label="Ajustes"
               />
             </View>
           </AnimatedTabBar>
         )}
-        
-        {/* Support Modal */}
-        <SupportModal 
-          visible={showSupportModal} 
-          onClose={() => setShowSupportModal(false)} 
-        />
       </View>
     </ScrollContext.Provider>
   );

@@ -140,7 +140,7 @@ export default function SearchScreen() {
   const filters = [
     { id: 'all', name: 'Todo', icon: 'apps' },
     { id: 'Música', name: 'Música', icon: 'musical-notes' },
-    { id: 'Teatro', name: 'Teatro', icon: 'theater-masks' },
+    { id: 'Teatro', name: 'Teatro', icon: 'library' },
     { id: 'Festival', name: 'Festival', icon: 'star' },
     { id: 'Comedia', name: 'Comedia', icon: 'happy' },
     { id: 'Arte', name: 'Arte', icon: 'color-palette' },

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  Button,
   Alert,
   Image,
   Dimensions,
@@ -14,6 +13,7 @@ import {
   TextInput,
   ScrollView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -27,8 +27,13 @@ import * as Location from 'expo-location';
 import { useScrollContext } from './_layout';
 import { Typography, FontFamily } from '../../constants/fonts';
 import LocationSelectorModal from '../../components/location-selector-modal';
-import SideMenu from '../../components/side-menu';
 import { NativeButton } from '../../components/native-button';
+import LiquidGlassCard from '../../components/liquid-glass-card';
+import { useTheme, Theme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { ApiService, Event, formatEventDate, getEventImageUrl, getEventVenue } from '../../lib/api';
+import EventSkeleton from '../../components/event-skeleton';
+import SupportModal from '../../components/support-modal';
 // Native Tabs work perfectly, keeping header custom for now
 
 const { width } = Dimensions.get('window');
@@ -39,20 +44,41 @@ const CARD_WIDTH = width - CARD_HORIZONTAL_PADDING;
 const CARD_HEIGHT = (CARD_WIDTH * 4) / 3; // 4:3 ratio where 4 is height
 
 export default function HomeScreen() {
+  const { theme } = useTheme();
+  const { user, session } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
-  const [query, setQuery] = useState('');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('Medellín'); // Default fallback
   const [isDetectingInitialLocation, setIsDetectingInitialLocation] = useState(false);
-  const [showSideMenu, setShowSideMenu] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [greeting, setGreeting] = useState('Hola');
+  const [loading, setLoading] = useState(true);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   const { scrollY, onScroll } = useScrollContext();
   const insets = useSafeAreaInsets();
 
-  // Detect location when app starts
+  // Load events and detect location when app starts
   useEffect(() => {
     detectInitialLocation();
+    loadEvents();
   }, []);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      // Get user's access token from auth context
+      const userToken = session?.accessToken;
+      const response = await ApiService.getMainEvents(userToken);
+      setEvents(response.events);
+      setGreeting(response.greeting);
+      console.log('Events loaded:', response.events.length);
+    } catch (error) {
+      console.error('Error loading events:', error);
+      // Keep empty events array as fallback
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const detectInitialLocation = async () => {
     try {
@@ -88,32 +114,37 @@ export default function HomeScreen() {
       setIsDetectingInitialLocation(false);
     }
   };
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setRefreshing(false);
+    try {
+      await loadEvents();
       console.log('Events refreshed');
-    }, 2000);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error('Error refreshing events:', error);
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
 
-  const handleShare = async (event: any) => {
+  const handleShare = async (event: Event) => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await Share.share({
-        message: `¡Mira este evento: ${event.title} en ${event.location}! 🎉`,
-        title: event.title,
+        message: `¡Mira este evento: ${event.name} en ${getEventVenue(event)}! 🎉 ${event.url}`,
+        title: event.name,
+        url: event.url,
       });
     } catch (error) {
       console.error('Error sharing:', error);
     }
   };
 
-  const handleOptions = (event: any) => {
+  const handleOptions = (event: Event) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     Alert.alert(
       'Opciones',
-      `¿Qué quieres hacer con ${event.title}?`,
+      `¿Qué quieres hacer con ${event.name}?`,
       [
         { text: 'Compartir', onPress: () => handleShare(event) },
         { text: 'Favorito', onPress: () => {
@@ -125,18 +156,29 @@ export default function HomeScreen() {
     );
   };
 
-  const handleEventPress = (event: any) => {
+  const handleEventPress = (event: Event) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/(tabs)/event/${event.id}`);
+    console.log('Event pressed:', event.id);
+    console.log('Attempting navigation...');
+
+    // Try multiple navigation approaches
+    setTimeout(() => {
+      try {
+        console.log('Using router.push');
+        router.push(`/event/${event.id}`);
+      } catch (error) {
+        console.error('router.push failed:', error);
+        try {
+          console.log('Using router.navigate');
+          router.navigate(`/event/${event.id}`);
+        } catch (error2) {
+          console.error('router.navigate failed:', error2);
+          Alert.alert('Error', 'No se pudo navegar al evento');
+        }
+      }
+    }, 100);
   };
 
-  const toggleSearch = () => {
-    Haptics.selectionAsync();
-    setIsSearching((prev) => !prev);
-    if (isSearching) setQuery('');
-  };
-
-  const clearQuery = () => setQuery('');
 
   const toggleLocationModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -150,260 +192,127 @@ export default function HomeScreen() {
     // Removed auto-close behavior from modal interaction as per update instructions
   };
 
-  const events = [
-    {
-      id: 1,
-      title: 'MARÍA HELENA AMADOR',
-      date: '29',
-      month: 'sep',
-      location: 'Gimnasio Moderno',
-      image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&h=1000&fit=crop',
-      subtitle: 'ZONAS VERDES Y COLISEO CUBIERTO',
-      dates: '29 SEPT - 3 OCT',
-    },
-    {
-      id: 2,
-      title: 'INSIDE PRESENTA',
-      date: '20',
-      month: 'sep',
-      location: 'Teatro Nacional',
-      image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop',
-      subtitle: 'CREATIVE ENTERTAINMENT',
-    },
-    {
-      id: 3,
-      title: 'FESTIVAL DE MÚSICA',
-      date: '15',
-      month: 'oct',
-      location: 'Parque Central',
-      image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=1000&fit=crop',
-      subtitle: 'ARTISTAS INTERNACIONALES',
-    },
-    {
-      id: 4,
-      title: 'STAND UP COMEDY',
-      date: '22',
-      month: 'oct',
-      location: 'Teatro Libre',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=800&fit=crop',
-      subtitle: 'NOCHE DE RISAS',
-    },
-  ];
+  const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style={theme.isDark ? "light" : "dark"} />
 
       {/* Header with Gradient Overlay */}
       <View style={[styles.headerOverlay, { paddingTop: insets.top + 20 }]}>
         <LinearGradient
-          colors={['#0a0a0a', 'rgba(10, 10, 10, 0.8)', 'transparent']}
+          colors={theme.colors.gradientOverlay}
           locations={[0, 0.7, 1]}
           style={StyleSheet.absoluteFillObject}
         />
         <View style={styles.headerContent}>
-          {isSearching ? (
-            <View style={styles.searchHeaderContainer}>
-              <View style={styles.searchBar}>
-                <Ionicons name="search-outline" size={18} color="#888888" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Buscar eventos, lugares o artistas"
-                  placeholderTextColor="#888888"
-                  value={query}
-                  onChangeText={setQuery}
-                  autoFocus
-                  returnKeyType="search"
-                />
-                {query.length > 0 && (
-                  <TouchableOpacity onPress={clearQuery} style={styles.clearButton}>
-                    <Ionicons name="close-circle" size={18} color="#888888" />
-                  </TouchableOpacity>
-                )}
-              </View>
-              <TouchableOpacity style={styles.headerActionButton} onPress={toggleSearch}>
-                <Ionicons name="close" size={20} color="#ffffff" />
+          <View style={styles.greetingContainer}>
+            <View style={styles.greetingText}>
+              <Text style={styles.greeting}>{greeting}</Text>
+              <TouchableOpacity
+                style={styles.locationContainer}
+                onPress={toggleLocationModal}
+              >
+                <Text style={styles.locationText}>{selectedLocation}</Text>
+                <Ionicons name="chevron-down" size={16} color="#cccccc" />
               </TouchableOpacity>
             </View>
-          ) : (
-            <>
-              <View style={styles.greetingContainer}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.liquidGlassButton,
-                    pressed && Platform.select({
-                      ios: {
-                        transform: [{ scale: 0.95 }],
-                      },
-                      android: { backgroundColor: 'rgba(255, 255, 255, 0.2)' }
-                    })
-                  ]}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setShowSideMenu(true);
-                  }}
-                  android_ripple={{
-                    color: 'rgba(255, 255, 255, 0.3)',
-                    borderless: true
-                  }}
-                >
-                  <BlurView
-                    intensity={60}
-                    tint="extraLight"
-                    style={styles.liquidGlassBlur}
-                  >
-                    <View style={styles.liquidGlassOverlay}>
-                      <Ionicons name="menu" size={22} color="rgba(255, 255, 255, 0.95)" />
-                    </View>
-                  </BlurView>
-                </Pressable>
-                <View style={styles.greetingText}>
-                  <TouchableOpacity
-                    style={styles.locationContainer}
-                    onPress={toggleLocationModal}
-                  >
-                    <Text style={styles.greeting}>{selectedLocation}</Text>
-                    <Ionicons name="chevron-down" size={20} color="#ffffff" />
-                  </TouchableOpacity>
+          </View>
+
+          {/* Header Right Buttons */}
+          <View style={styles.headerRightButtons}>
+            {/* Glass Support Button */}
+            <TouchableOpacity
+              style={styles.glassHeaderButton}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setShowSupportModal(true);
+              }}
+              activeOpacity={0.8}
+            >
+              <BlurView
+                intensity={60}
+                tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                style={StyleSheet.absoluteFillObject}
+              />
+              <View style={styles.glassButtonOverlay}>
+                <Ionicons
+                  name="headset"
+                  size={20}
+                  color={theme.colors.text}
+                />
+              </View>
+            </TouchableOpacity>
+
+            {/* Glass Notification Button */}
+            <TouchableOpacity
+              style={styles.glassHeaderButton}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/notifications');
+              }}
+              activeOpacity={0.8}
+            >
+              <BlurView
+                intensity={60}
+                tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                style={StyleSheet.absoluteFillObject}
+              />
+              <View style={styles.glassButtonOverlay}>
+                <Ionicons
+                  name="notifications"
+                  size={20}
+                  color={theme.colors.text}
+                />
+                <View style={styles.glassNotificationBadge}>
+                  <Text style={styles.glassNotificationBadgeText}>3</Text>
                 </View>
               </View>
-              <View style={styles.headerActions}>
-                <TouchableOpacity
-                  style={styles.headerActionButton}
-                  onPress={() => router.push('/(tabs)/categories')}
-                >
-                  <Ionicons name="grid-outline" size={20} color="#ffffff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.headerActionButton}
-                  onPress={toggleSearch}
-                >
-                  <Ionicons name="search-outline" size={20} color="#ffffff" />
-                </TouchableOpacity>
-                {/* TRULY Native iOS Button (UIButton) */}
-                <View style={styles.trueNativeButton}>
-                  <Button
-                    title="🧪"
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      router.push('/(tabs)/native-components');
-                    }}
-                    color={Platform.OS === 'ios' ? '#007AFF' : '#2196F3'}
-                  />
-                </View>
-                {/* Native iOS Tab Navigation Test */}
-                <TouchableOpacity
-                  style={styles.navigationTestButton}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    Alert.alert('Tab Navigation', 'Testing native tab navigation behavior');
-                  }}
-                >
-                  <Text style={styles.navigationTestText}>✨</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
+            </TouchableOpacity>
+          </View>
         </View>
 
       </View>
 
-      {/* Content */}
-      {isSearching ? (
-        <ScrollView style={styles.searchContent} showsVerticalScrollIndicator={false}>
-          <Text style={styles.searchHint}>Explora por categorías</Text>
-          <View style={styles.chipsRow}>
-            {['Hoy', 'Música', 'Teatro', 'Gratis', 'Cerca de ti'].map((c) => (
-              <TouchableOpacity key={c} style={styles.chip} onPress={() => setQuery(c)}>
-                <Text style={styles.chipText}>{c}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {query.length > 0 ? (
-            <View style={{ marginTop: 16 }}>
-              <Text style={styles.resultsTitle}>Resultados para "{query}"</Text>
-              {/* Placeholder simple results cards */}
-              {[1,2,3].map((i) => (
-                <View key={i} style={styles.resultItem}>
-                  <View style={styles.resultThumb} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.resultTitle}>Evento {i} — {query}</Text>
-                    <Text style={styles.resultSubtitle}>Lugar • Fecha</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color="#888888" />
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={{ marginTop: 16 }}>
-              <Text style={styles.searchHint}>Búsquedas recientes</Text>
-              {['Concierto', 'Medellín', 'Stand Up'].map((r) => (
-                <TouchableOpacity key={r} style={styles.recentItem} onPress={() => setQuery(r)}>
-                  <Ionicons name="time-outline" size={16} color="#888888" />
-                  <Text style={styles.recentText}>{r}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </ScrollView>
-      ) : (
-        /* Events Feed */
-        <Animated.ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#ffffff"
-              colors={["#ffffff"]}
-            />
-          }
-        >
-          {events.map((event) => (
-            <TouchableOpacity 
-              key={event.id} 
-              style={styles.eventCard}
-              activeOpacity={0.95}
+      {/* Events Feed */}
+      <Animated.ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#ffffff"
+            colors={["#ffffff"]}
+          />
+        }
+      >
+        {loading ? (
+          <>
+            <EventSkeleton />
+            <EventSkeleton />
+            <EventSkeleton />
+          </>
+        ) : events.length > 0 ? (
+          events.map((event) => (
+            <LiquidGlassCard
+              key={event.id}
+              event={event}
               onPress={() => handleEventPress(event)}
-            >
-              <Image source={{ uri: event.image }} style={styles.eventImage} />
-              {/* Gradient Overlay */}
-              <LinearGradient 
-                colors={['transparent', '#0a0a0a']} 
-                style={styles.overlay}
-                locations={[0.3, 1]}
-              />
-              {/* Card Actions */}
-              <View style={styles.cardActions}>
-                <TouchableOpacity 
-                  style={styles.overlayActionButton}
-                  onPress={() => handleShare(event)}
-                >
-                  <Ionicons name="share-outline" size={20} color="#ffffff" />
-                </TouchableOpacity>
-                <View style={styles.dateContainer}>
-                  <Text style={styles.dateNumber}>{event.date}</Text>
-                  <Text style={styles.dateMonth}>{event.month}</Text>
-                </View>
-              </View>
-
-              {/* Event Info */}
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <View style={styles.locationContainer}>
-                  <Ionicons name="location-outline" size={16} color="#cccccc" />
-                  <Text style={styles.eventLocation}>{event.location}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </Animated.ScrollView>
-      )}
+              onShare={() => handleShare(event)}
+            />
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="calendar-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
+            <Text style={styles.emptyTitle}>No hay eventos disponibles</Text>
+            <Text style={styles.emptySubtitle}>Desliza hacia abajo para actualizar</Text>
+          </View>
+        )}
+      </Animated.ScrollView>
 
       {/* Location Selector Modal */}
       <LocationSelectorModal
@@ -413,19 +322,20 @@ export default function HomeScreen() {
         currentLocation={selectedLocation}
       />
 
-      {/* Side Menu */}
-      <SideMenu
-        visible={showSideMenu}
-        onClose={() => setShowSideMenu(false)}
+      {/* Support Modal */}
+      <SupportModal
+        visible={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
       />
+
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -440,8 +350,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
   },
   headerContent: {
     flexDirection: 'row',
@@ -449,32 +359,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
     zIndex: 1,
-  },
-  searchHeaderContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
-    borderWidth: 1,
-    borderColor: '#333333',
-    gap: 8,
-  },
-  searchInput: {
-    flex: 1,
-    ...Typography.body,
-    color: '#ffffff',
-  },
-  clearButton: {
-    padding: 4,
   },
   greetingContainer: {
     flex: 1,
@@ -527,30 +411,22 @@ const styles = StyleSheet.create({
   },
   greeting: {
     ...Typography.title2,
-    color: '#ffffff',
+    color: theme.colors.text,
+    fontSize: 32,
+    fontWeight: '800',
+    marginBottom: 2,
+    letterSpacing: -0.5,
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
   locationText: {
     ...Typography.caption,
-    color: '#888888',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  headerActionButton: {
-    width: 44,
-    height: 44,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#333333',
+    color: theme.colors.textSecondary,
+    fontSize: 15,
+    fontWeight: '500',
   },
   nativeButtonContainer: {
     width: 44,
@@ -578,189 +454,86 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 2,
   },
-  trueNativeButton: {
+  headerRightButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  glassHeaderButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
     overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  glassButtonOverlay: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   },
-  navigationTestButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'transparent',
+  glassNotificationBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#FF3B30',
+    borderRadius: 9,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#007AFF',
+    borderWidth: 2,
+    borderColor: theme.colors.background,
+    shadowColor: '#FF3B30',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 4,
   },
-  navigationTestText: {
-    fontSize: 18,
-    color: '#007AFF',
-  },
-  searchContent: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 120, // Header height + safe area
-  },
-  searchHint: {
-    ...Typography.subheadline,
-    color: '#cccccc',
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
-  },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#333333',
-  },
-  chipText: {
-    ...Typography.caption,
+  glassNotificationBadgeText: {
     color: '#ffffff',
-  },
-  resultsTitle: {
-    ...Typography.bodyMedium,
-    color: '#ffffff',
-    marginBottom: 8,
-  },
-  resultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f1f1f',
-  },
-  resultThumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    backgroundColor: '#222222',
-  },
-  resultTitle: {
-    ...Typography.body,
-    color: '#ffffff',
-  },
-  resultSubtitle: {
-    ...Typography.caption,
-    color: '#aaaaaa',
-  },
-  recentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f1f1f',
-  },
-  recentText: {
-    ...Typography.body,
-    color: '#cccccc',
+    fontSize: 10,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
   },
   scrollViewContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 140, // Header height + extra spacing
     paddingBottom: 120, // Bottom spacing for tab bar + extra
   },
-  eventCard: {
-    marginBottom: 20,
-    borderRadius: 20,
-    overflow: 'hidden',
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    position: 'relative',
-    alignSelf: 'center', // Center the card horizontally
-    borderWidth: 1,
-    borderColor: '#303030',
-  },
-  eventImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  cardActions: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    right: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  overlayActionButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 10,
+  emptyContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 80,
+    gap: 16,
   },
-  dateContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#303030',
+  emptyTitle: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 20,
+    fontWeight: '600',
+    textAlign: 'center',
   },
-  dateNumber: {
-    ...Typography.title3,
-    fontSize: 24,
-    color: '#ffffff',
-    lineHeight: 28,
-    fontWeight: 'bold',
-  },
-  dateMonth: {
-    ...Typography.caption,
-    color: '#ffffff',
-    textTransform: 'lowercase',
-  },
-  eventInfo: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-  },
-  eventDates: {
-    ...Typography.subheadline,
-    color: '#ffffff',
-    marginBottom: 4,
-  },
-  eventSubtitle: {
-    ...Typography.body,
-    color: '#ffffff',
-    opacity: 0.9,
-    marginBottom: 8,
-  },
-  eventTitle: {
-    ...Typography.title1,
-    fontSize: 28, // Slightly smaller for better fit in 4:3 ratio
-    color: '#ffffff',
-    marginBottom: 8,
-    lineHeight: 32,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  eventLocation: {
-    ...Typography.body,
-    color: '#cccccc',
-    marginLeft: 4,
+  emptySubtitle: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
