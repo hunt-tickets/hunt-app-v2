@@ -1,42 +1,51 @@
 import { Stack, router } from 'expo-router';
-import { Platform, TouchableOpacity, Alert } from 'react-native';
+import { Platform, TouchableOpacity, Alert, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ManageEventsLayout() {
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#0a0a0a',
+          backgroundColor: 'transparent',
+          height: 120, // Make header taller
         },
         headerTintColor: '#ffffff',
         headerShadowVisible: false,
-        headerLargeTitle: Platform.OS === 'ios',
-        headerTransparent: Platform.OS === 'ios',
-        headerBlurEffect: Platform.OS === 'ios' ? 'dark' : undefined,
+        headerTransparent: true,
+        headerBlurEffect: 'dark',
       }}
     >
       <Stack.Screen
         name="index"
         options={{
-          title: 'Administrar',
-          headerLargeTitle: true,
+          title: 'Eventos',
+          headerLargeTitle: false,
+          headerBackVisible: true,
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.back();
+              }}
+              style={{ marginLeft: Platform.OS === 'ios' ? 0 : 8 }}
+            >
+              <View style={{ paddingLeft: 2 }}>
+                <Ionicons
+                  name={Platform.OS === 'ios' ? 'chevron-back' : 'arrow-back'}
+                  size={Platform.OS === 'ios' ? 28 : 24}
+                  color="#ffffff"
+                />
+              </View>
+            </TouchableOpacity>
+          ),
           headerSearchBarOptions: Platform.OS === 'ios' ? {
             placeholder: 'Buscar eventos',
             hideWhenScrolling: false,
             autoCapitalize: 'none',
           } : undefined,
-          headerRight: () => (
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                Alert.alert('Crear Evento', 'Funcionalidad de crear evento próximamente');
-              }}
-            >
-              <Ionicons name="add-circle" size={28} color="#ffffff" />
-            </TouchableOpacity>
-          ),
         }}
       />
       <Stack.Screen

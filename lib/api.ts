@@ -21,6 +21,16 @@ export interface Event {
   ics: string;
 }
 
+// Admin Event Type
+export interface AdminEvent {
+  id: string;
+  url: string;
+  date: string;
+  name: string;
+  flyer: string | null;
+  status: string | null;
+}
+
 export interface EventsResponse {
   greeting: string;
   events: Event[];
@@ -147,6 +157,30 @@ export class ApiService {
 
   static async getUserProfile(userToken?: string): Promise<UserProfile> {
     return this.makeRpcRequest<UserProfile>('get_current_user_profile', userToken);
+  }
+
+  // Get all events for admin panel (ordered)
+  static async getAllEventsOrdered(userToken?: string): Promise<AdminEvent[]> {
+    try {
+      const response = await fetch(`${API_REST_URL}/rpc/get_all_events_ordered`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          ...(userToken && { 'Authorization': `Bearer ${userToken}` })
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data as AdminEvent[];
+    } catch (error) {
+      console.error('Error fetching admin events:', error);
+      throw error;
+    }
   }
 
   // Future API endpoints can be added here

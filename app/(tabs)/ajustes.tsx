@@ -58,6 +58,14 @@ export default function AjustesScreen() {
           action: () => console.log('Personal info'),
         },
         {
+          id: 3,
+          title: 'Seguridad',
+          subtitle: 'Contraseña y autenticación',
+          icon: 'lock-closed-outline',
+          type: 'navigation',
+          action: () => console.log('Security settings'),
+        },
+        {
           id: 13,
           title: 'Administrar eventos',
           subtitle: 'Crear, editar y gestionar eventos',
@@ -93,7 +101,7 @@ export default function AjustesScreen() {
       title: 'Notificaciones',
       items: [
         {
-          id: 3,
+          id: 4,
           title: 'Notificaciones push',
           subtitle: 'Eventos, recordatorios, ofertas',
           icon: 'notifications-outline',
@@ -102,7 +110,7 @@ export default function AjustesScreen() {
           action: setNotifications,
         },
         {
-          id: 4,
+          id: 5,
           title: 'Emails promocionales',
           subtitle: 'Ofertas y eventos especiales',
           icon: 'mail-outline',
@@ -116,7 +124,7 @@ export default function AjustesScreen() {
       title: 'Privacidad',
       items: [
         {
-          id: 5,
+          id: 6,
           title: 'Acceso a ubicación',
           subtitle: 'Para eventos cercanos',
           icon: 'location-outline',
@@ -130,7 +138,7 @@ export default function AjustesScreen() {
       title: 'Apariencia',
       items: [
         {
-          id: 8,
+          id: 7,
           title: theme.isDark ? 'Modo oscuro' : 'Modo claro',
           subtitle: theme.isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro',
           icon: theme.isDark ? 'moon' : 'sunny',
@@ -147,21 +155,21 @@ export default function AjustesScreen() {
       title: 'General',
       items: [
         {
-          id: 6,
+          id: 8,
           title: 'Términos y Condiciones',
           icon: 'document-text-outline',
           type: 'navigation',
           action: () => console.log('Terms'),
         },
         {
-          id: 7,
+          id: 9,
           title: 'Política de Privacidad',
           icon: 'shield-outline',
           type: 'navigation',
           action: () => console.log('Privacy'),
         },
         {
-          id: 12,
+          id: 10,
           title: 'Cerrar sesión',
           icon: 'log-out-outline',
           type: 'action',

@@ -7,6 +7,9 @@ import {
   ScrollView,
   Alert,
   Image,
+  Dimensions,
+  ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { StatusBar } from 'expo-status-bar';
@@ -14,82 +17,106 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { ApiService, AdminEvent } from '../../lib/api';
+import ManageEventsSkeleton from '../../components/manage-events-skeleton';
 
-interface Event {
-  id: number;
+const { width } = Dimensions.get('window');
+// Horizontal card dimensions - full width
+const CARD_HEIGHT = 160; // Fixed height for horizontal cards
+
+interface MappedEvent {
+  id: string;
   title: string;
   subtitle: string;
   location: string;
   date: string;
   month: string;
-  status: 'active' | 'draft' | 'past';
-  image: string;
+  status: 'active' | 'draft' | 'past' | null;
+  image: string | null;
   attendees: number;
 }
 
 export default function ManageEventsScreen() {
   const { theme } = useTheme();
+  const { session } = useAuth();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [selectedFilterIndex, setSelectedFilterIndex] = useState(0);
   const [searchText, setSearchText] = useState((params.q as string) || '');
+  const [events, setEvents] = useState<MappedEvent[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock events data
-  const [events] = useState<Event[]>([
-    {
-      id: 1,
-      title: 'MARÍA HELENA AMADOR',
-      subtitle: 'ZONAS VERDES Y COLISEO CUBIERTO',
-      location: 'Gimnasio Moderno',
-      date: '29',
-      month: 'sep',
-      status: 'active',
-      image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&h=1000&fit=crop',
-      attendees: 245,
-    },
-    {
-      id: 2,
-      title: 'INSIDE PRESENTA',
-      subtitle: 'CREATIVE ENTERTAINMENT',
-      location: 'Teatro Nacional',
-      date: '20',
-      month: 'sep',
-      status: 'active',
-      image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop',
-      attendees: 156,
-    },
-    {
-      id: 3,
-      title: 'FESTIVAL DE MÚSICA',
-      subtitle: 'ARTISTAS INTERNACIONALES',
-      location: 'Parque Central',
-      date: '15',
-      month: 'oct',
-      status: 'draft',
-      image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=1000&fit=crop',
-      attendees: 0,
-    },
-    {
-      id: 4,
-      title: 'STAND UP COMEDY',
-      subtitle: 'NOCHE DE RISAS',
-      location: 'Teatro Libre',
-      date: '22',
-      month: 'ago',
-      status: 'past',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=800&fit=crop',
-      attendees: 89,
-    },
-  ]);
+  // Load events from API
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      const userToken = session?.accessToken;
+      const apiEvents = await ApiService.getAllEventsOrdered(userToken);
+
+      // Map API events to component interface
+      const mappedEvents: MappedEvent[] = apiEvents.map(event => {
+        // Parse date string (e.g., "19 OCT" or " ")
+        const dateParts = event.date.trim().split(' ');
+        const day = dateParts[0] || '';
+        const month = dateParts[1]?.toLowerCase() || '';
+
+        // Map status to component status type
+        let componentStatus: 'active' | 'draft' | 'past' | null = null;
+        if (event.status) {
+          const statusLower = event.status.toLowerCase();
+          if (statusLower === 'activo' || statusLower === 'active') {
+            componentStatus = 'active';
+          } else if (statusLower === 'borrador' || statusLower === 'draft') {
+            componentStatus = 'draft';
+          } else if (statusLower === 'pasado' || statusLower === 'past' || statusLower === 'finalizado') {
+            componentStatus = 'past';
+          }
+        } else {
+          // If no status, default to draft
+          componentStatus = 'draft';
+        }
+
+        console.log(`Event: ${event.name}, Status from API: ${event.status}, Mapped to: ${componentStatus}`);
+
+        return {
+          id: event.id,
+          title: event.name,
+          subtitle: '', // API doesn't provide subtitle
+          location: 'Evento', // API doesn't provide location in this endpoint
+          date: day,
+          month: month,
+          status: componentStatus,
+          image: event.flyer || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&h=600&fit=crop',
+          attendees: 0 // API doesn't provide attendees in this endpoint
+        };
+      });
+
+      setEvents(mappedEvents);
+    } catch (error) {
+      console.error('Error loading events:', error);
+      Alert.alert('Error', 'No se pudieron cargar los eventos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Filter events
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchText.toLowerCase()) ||
                          event.location.toLowerCase().includes(searchText.toLowerCase());
-    const matchesFilter = selectedFilter === 'all' || event.status === selectedFilter;
+    const matchesFilter = selectedFilter === 'all' ||
+                         event.status === selectedFilter ||
+                         (selectedFilter === 'draft' && !event.status); // Show null status as draft
     return matchesSearch && matchesFilter;
   });
 
@@ -107,7 +134,7 @@ export default function ManageEventsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'active': return '#34C759';
       case 'draft': return '#FF9500';
@@ -116,7 +143,7 @@ export default function ManageEventsScreen() {
     }
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: string | null) => {
     switch (status) {
       case 'active': return 'Activo';
       case 'draft': return 'Borrador';
@@ -125,15 +152,11 @@ export default function ManageEventsScreen() {
     }
   };
 
-  const handleEventPress = (event: Event) => {
+  const handleEventPress = (event: MappedEvent) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(`/manage-events/${event.id}`);
   };
 
-  const handleCreateEvent = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert('Crear Evento', 'Funcionalidad de crear evento próximamente');
-  };
 
   // Handle search from native search bar
   useEffect(() => {
@@ -152,7 +175,7 @@ export default function ManageEventsScreen() {
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: 20 }]}
+        contentContainerStyle={styles.scrollContent}
       >
 
         {/* Filter Tabs - iOS Native Style */}
@@ -166,48 +189,88 @@ export default function ManageEventsScreen() {
         </View>
 
         {/* Events List */}
-        {filteredEvents.map((event) => (
-          <TouchableOpacity
-            key={event.id}
-            style={styles.eventCard}
-            onPress={() => handleEventPress(event)}
-          >
-            <Image source={{ uri: event.image }} style={styles.eventImage} />
-
-            {/* Overlay with gradient */}
-            <LinearGradient
-              colors={['transparent', '#0a0a0a']}
-              style={styles.eventOverlay}
+        {loading ? (
+          <ManageEventsSkeleton />
+        ) : filteredEvents.length > 0 ? (
+          filteredEvents.map((event) => (
+            <TouchableOpacity
+              key={event.id}
+              style={styles.eventCard}
+              onPress={() => handleEventPress(event)}
+              activeOpacity={0.95}
             >
-              <View style={styles.eventStatus}>
-                <View style={[styles.statusDot, { backgroundColor: getStatusColor(event.status) }]} />
-                <Text style={[styles.statusText, { color: getStatusColor(event.status) }]}>
-                  {getStatusLabel(event.status)}
-                </Text>
-              </View>
+              {/* Background Image */}
+              <Image source={{ uri: event.image }} style={styles.eventImage} />
 
-              <View style={styles.eventBottomContent}>
-                <View style={styles.eventInfo}>
-                  <Text style={styles.eventTitle}>{event.title}</Text>
-                  <Text style={styles.eventDate}>{event.date} {event.month}</Text>
-                </View>
+              {/* Enhanced Gradient Overlay - same as LiquidGlassCard */}
+              <LinearGradient
+                colors={['transparent', 'rgba(8, 8, 8, 0.7)', 'rgba(10, 10, 10, 0.95)']}
+                style={styles.overlay}
+                locations={[0, 0.4, 0.8]}
+              />
 
+              {/* Card Actions with Liquid Glass */}
+              <View style={styles.cardActions}>
+                {/* Share Button with Liquid Glass */}
                 <TouchableOpacity
-                  style={styles.shareButton}
-                  onPress={() => {
+                  style={styles.actionButton}
+                  onPress={(e) => {
+                    e.stopPropagation();
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     console.log('Share event', event.id);
                   }}
                 >
-                  <Ionicons name="share-outline" size={20} color="#ffffff" />
+                  <BlurView
+                    intensity={40}
+                    tint="dark"
+                    style={styles.actionButtonBlur}
+                  >
+                    <View style={styles.actionButtonOverlay}>
+                      <Ionicons name="share-outline" size={16} color="#ffffff" />
+                    </View>
+                  </BlurView>
                 </TouchableOpacity>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        ))}
 
-        {/* Empty State */}
-        {filteredEvents.length === 0 && (
+                {/* Date Container with Liquid Glass */}
+                <View style={styles.dateContainer}>
+                  <BlurView
+                    intensity={40}
+                    tint="dark"
+                    style={styles.dateBlur}
+                  >
+                    <View style={styles.dateOverlay}>
+                      <Text style={styles.eventMonth}>{event.month.toUpperCase()}</Text>
+                      <Text style={styles.eventDay}>{event.date}</Text>
+                    </View>
+                  </BlurView>
+                </View>
+              </View>
+
+              {/* Status Badge - only show if status exists */}
+              {event.status && (
+                <View style={styles.statusBadge}>
+                  <BlurView
+                    intensity={50}
+                    tint="dark"
+                    style={styles.statusBlur}
+                  >
+                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(event.status) }]} />
+                    <Text style={[styles.statusText, { color: getStatusColor(event.status) }]}>
+                      {getStatusLabel(event.status)}
+                    </Text>
+                  </BlurView>
+                </View>
+              )}
+
+              {/* Event Content */}
+              <View style={styles.eventContent}>
+                <Text style={styles.eventTitle} numberOfLines={2}>
+                  {event.title}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))
+        ) : (
           <View style={styles.emptyState}>
             <Ionicons name="calendar-outline" size={64} color={theme.colors.textTertiary} />
             <Text style={styles.emptyStateTitle}>No hay eventos</Text>
@@ -233,6 +296,7 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
+    paddingTop: 140, // Start content below the taller header
     paddingBottom: 120, // Bottom spacing for tab bar
   },
   // Filter styles
@@ -243,85 +307,134 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
     width: '100%',
     height: 36,
   },
-  // Event card styles
+  // Event Card styles - horizontal full width
   eventCard: {
-    height: 160,
-    borderRadius: 16,
-    marginBottom: 16,
+    width: '100%',
+    height: CARD_HEIGHT,
+    borderRadius: 20,
     overflow: 'hidden',
-    position: 'relative',
+    backgroundColor: '#0a0a0a',
     borderWidth: 0.5,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    shadowColor: theme.colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    marginBottom: 12,
   },
   eventImage: {
+    ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
-    position: 'absolute',
   },
-  eventOverlay: {
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  // Card Actions
+  cardActions: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    gap: 8,
+    zIndex: 2,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  actionButtonBlur: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonOverlay: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  // Date Container
+  dateContainer: {
+    width: 52,
+    height: 56,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  dateBlur: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateOverlay: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  eventMonth: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 0.5,
+  },
+  eventDay: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#ffffff',
+    marginTop: -2,
+  },
+  // Status Badge
+  statusBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  statusBlur: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 8,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  // Event Content
+  eventContent: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     padding: 16,
-    justifyContent: 'flex-end',
-  },
-  eventStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    position: 'absolute',
-    top: 16,
-    right: 16,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  eventBottomContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  eventInfo: {
-    flex: 1,
   },
   eventTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     color: '#ffffff',
-    marginBottom: 4,
-    lineHeight: 22,
-  },
-  eventDate: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontWeight: '500',
-    textTransform: 'uppercase',
-  },
-  shareButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 12,
+    lineHeight: 28,
+    letterSpacing: -0.5,
   },
   // Empty state
   emptyState: {
