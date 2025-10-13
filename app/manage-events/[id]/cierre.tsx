@@ -134,7 +134,7 @@ export default function CierreScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Métodos de Pago</Text>
           <View style={styles.paymentMethodsCard}>
-            {cierreData.metodoPago.map((metodo, index) => (
+            {Array.isArray(cierreData?.metodoPago) ? cierreData.metodoPago.map((metodo, index) => (
               <View key={index} style={styles.paymentMethodRow}>
                 <View style={styles.paymentMethodInfo}>
                   <Text style={styles.paymentMethodName}>{metodo.tipo}</Text>
@@ -144,7 +144,7 @@ export default function CierreScreen() {
                   <Text style={styles.paymentMethodPercent}>{metodo.porcentaje}%</Text>
                 </View>
               </View>
-            ))}
+            )) : null}
           </View>
         </View>
 
@@ -152,7 +152,7 @@ export default function CierreScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Resumen de Ventas</Text>
           <View style={styles.salesSummaryCard}>
-            {cierreData.resumenVentas.map((categoria, index) => (
+            {Array.isArray(cierreData?.resumenVentas) ? cierreData.resumenVentas.map((categoria, index) => (
               <View key={index} style={styles.salesRow}>
                 <View style={styles.salesInfo}>
                   <Text style={styles.salesCategory}>{categoria.categoria}</Text>
@@ -160,7 +160,7 @@ export default function CierreScreen() {
                 </View>
                 <Text style={styles.salesAmount}>₡{categoria.monto.toLocaleString()}</Text>
               </View>
-            ))}
+            )) : null}
           </View>
         </View>
 

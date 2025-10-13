@@ -63,7 +63,7 @@ export default function AjustesScreen() {
           subtitle: 'Contraseña y autenticación',
           icon: 'lock-closed-outline',
           type: 'navigation',
-          action: () => console.log('Security settings'),
+          action: () => router.push('/security'),
         },
         {
           id: 13,
@@ -90,6 +90,21 @@ export default function AjustesScreen() {
             console.log('Navigating to vender-tickets');
             try {
               router.push('/vender-tickets');
+            } catch (error) {
+              console.error('Navigation error:', error);
+            }
+          },
+        },
+        {
+          id: 15,
+          title: 'Mis Perfiles',
+          subtitle: 'Gestionar perfiles de usuario',
+          icon: 'people-outline',
+          type: 'navigation',
+          action: () => {
+            console.log('Navigating to mis-perfiles');
+            try {
+              router.push('/mis-perfiles');
             } catch (error) {
               console.error('Navigation error:', error);
             }
@@ -147,6 +162,44 @@ export default function AjustesScreen() {
           action: (value: boolean) => {
             toggleTheme();
             console.log('Theme changed to:', value ? 'dark' : 'light');
+          },
+        },
+      ],
+    },
+    {
+      title: 'Soporte',
+      items: [
+        {
+          id: 18,
+          title: 'Escanear Tickets',
+          subtitle: 'Scanner de códigos QR para eventos',
+          icon: 'qr-code-outline',
+          type: 'navigation',
+          action: () => {
+            console.log('🟡 [Scanner] Attempting to navigate to scanner');
+            try {
+              console.log('🟡 [Scanner] Using router.push(/scanner)');
+              router.push('/scanner');
+              console.log('🟢 [Scanner] Navigation initiated successfully');
+            } catch (error) {
+              console.error('🔴 [Scanner] Navigation error:', error);
+              Alert.alert('Error', 'No se pudo abrir el scanner');
+            }
+          },
+        },
+        {
+          id: 17,
+          title: 'Reportar Bug & Feedback',
+          subtitle: 'Ayúdanos a mejorar la app',
+          icon: 'bug-outline',
+          type: 'navigation',
+          action: () => {
+            console.log('Navigating to reportar-bugs');
+            try {
+              router.push('/reportar-bugs');
+            } catch (error) {
+              console.error('Navigation error:', error);
+            }
           },
         },
       ],

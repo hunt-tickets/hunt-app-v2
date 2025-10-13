@@ -61,7 +61,27 @@ function AppContent() {
         <Stack.Screen name="notifications" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="vender-tickets" />
+        <Stack.Screen
+          name="scanner"
+          options={{
+            title: 'Escáner de Tickets',
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: 'transparent',
+            },
+            headerTintColor: '#ffffff',
+            headerTitleStyle: {
+              fontWeight: '700',
+              fontSize: 18,
+            },
+            headerTransparent: true,
+            headerBlurEffect: 'systemUltraThinMaterialDark',
+            headerBackTitle: '',
+            headerBackTitleVisible: false,
+          }}
+        />
         <Stack.Screen name="auth" options={{ headerShown: false }} />
+        <Stack.Screen name="security" />
       </Stack>
     </>
   );

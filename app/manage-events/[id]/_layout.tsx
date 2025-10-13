@@ -38,6 +38,13 @@ export default function EventTabLayout() {
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger
+          name="productos"
+          onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+        >
+          <Icon sf="bag" />
+        </NativeTabs.Trigger>
+
+        <NativeTabs.Trigger
           name="cierre"
           onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
         >
@@ -88,6 +95,13 @@ export default function EventTabLayout() {
         options={{
           title: 'Vendedores',
           tabBarIcon: ({ color }) => <Icon sf="person.2" />,
+        }}
+      />
+      <Tabs.Screen
+        name="productos"
+        options={{
+          title: 'Productos',
+          tabBarIcon: ({ color }) => <Icon sf="bag" />,
         }}
       />
       <Tabs.Screen

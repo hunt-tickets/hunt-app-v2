@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,484 +7,614 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Alert,
   Share,
+  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
-import { useTheme, Theme } from '../../contexts/ThemeContext';
-import { Typography } from '../../constants/fonts';
 
 const { width, height } = Dimensions.get('window');
 
 export default function EventDetailScreen() {
   const { id } = useLocalSearchParams();
-  const { theme } = useTheme();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const insets = useSafeAreaInsets();
+  const [loading, setLoading] = useState(true);
 
-  // Event data - matches the events from home screen
-  const events = [
-    {
-      id: 1,
-      title: 'MARÍA HELENA AMADOR',
-      subtitle: 'ZONAS VERDES Y COLISEO CUBIERTO',
-      dates: '29 SEPT - 3 OCT',
-      date: '29',
-      month: 'sep',
-      location: 'Gimnasio Moderno',
-      image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&h=1000&fit=crop',
-      description: 'Una experiencia única que combina música, arte y naturaleza en un espacio renovado del Gimnasio Moderno. María Helena Amador presenta su nuevo espectáculo con una propuesta innovadora.',
-      price: 'Desde $75.000',
-      time: '8:00 PM',
-    },
-    {
-      id: 2,
-      title: 'INSIDE PRESENTA',
-      subtitle: 'CREATIVE ENTERTAINMENT',
-      dates: '20 SEPT',
-      date: '20',
-      month: 'sep',
-      location: 'Teatro Nacional',
-      image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop',
-      description: 'Una noche única de entretenimiento creativo que combina música, teatro y arte visual en el Teatro Nacional.',
-      price: 'Desde $50.000',
-      time: '7:30 PM',
-    },
-    {
-      id: 3,
-      title: 'FESTIVAL DE MÚSICA',
-      subtitle: 'ARTISTAS INTERNACIONALES',
-      dates: '15 OCT',
-      date: '15',
-      month: 'oct',
-      location: 'Parque Central',
-      image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=1000&fit=crop',
-      description: 'El festival de música más esperado del año con artistas internacionales y nacionales en el Parque Central.',
-      price: 'Desde $120.000',
-      time: '6:00 PM',
-    },
-    {
-      id: 4,
-      title: 'STAND UP COMEDY',
-      subtitle: 'NOCHE DE RISAS',
-      dates: '22 OCT',
-      date: '22',
-      month: 'oct',
-      location: 'Teatro Libre',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=800&fit=crop',
-      description: 'Una noche llena de risas con los mejores comediantes del país en el Teatro Libre.',
-      price: 'Desde $35.000',
-      time: '9:00 PM',
-    },
-  ];
+  console.log('🔵 [EventDetailScreen] ==========================================');
+  console.log('🔵 [EventDetailScreen] Component mounted successfully!');
+  console.log('🔵 [EventDetailScreen] Event ID:', id);
 
-  const event = events.find(e => e.id === parseInt(id as string)) || events[0];
-  const styles = createStyles(theme);
+  // Mock event data - replace with actual API call
+  const eventData = {
+    id: id as string,
+    name: 'SABANA & ROSARIO',
+    subtitle: 'NN 25°',
+    location: 'ST. MARTA',
+    date: '14 de octubre de 2025',
+    time: '01:00 - 08:00',
+    ageLimit: '18+ años',
+    city: 'Santa Marta',
+    venue: 'Santa Marta',
+    coordinates: '11°14\'31.9"N 74°12\'47.8"W',
+    ticketsAvailable: false,
+    image: 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&h=1000&fit=crop',
+    description: 'Una experiencia única en Santa Marta con la mejor música electrónica',
+    flyer: 'https://jtfcfsnksywotlbsddqb.supabase.co/storage/v1/object/public/events/flyers/7e3d4e39-ca58-4ba8-90f8-94b5f9f1a0ac.webp?t=1753057229228'
+  };
+
+  useEffect(() => {
+    console.log('🔵 [EventDetailScreen] useEffect triggered');
+    // Simulate loading
+    setTimeout(() => {
+      setLoading(false);
+      console.log('🔵 [EventDetailScreen] Loading complete');
+    }, 500);
+  }, [id]);
 
   const handleShare = async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await Share.share({
-        message: `¡Mira este evento: ${event.title} en ${event.location}! 🎉`,
-        title: event.title,
+        message: `¡Mira este evento: ${eventData.name} en ${eventData.location}! 🎉`,
+        title: eventData.name,
       });
     } catch (error) {
       console.error('Error sharing:', error);
     }
   };
 
-  const handleFavorite = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setIsFavorite(!isFavorite);
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
   };
 
-  const handleBuyTickets = () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(
-      'Comprar Entradas',
-      `¿Quieres comprar entradas para ${event.title}?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Comprar', onPress: () => console.log('Buying tickets') },
-      ]
+  if (loading) {
+    console.log('🔵 [EventDetailScreen] Rendering loading state');
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <StatusBar style="light" />
+        <Text style={styles.loadingText}>Cargando evento...</Text>
+      </View>
     );
-  };
+  }
+
+  console.log('🔵 [EventDetailScreen] Rendering full event detail page');
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style={theme.isDark ? "light" : "dark"} />
-      
-      {/* Header Image */}
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: event.image }} style={styles.headerImage} />
-        <LinearGradient
-          colors={['transparent', 'rgba(0, 0, 0, 0.3)', 'rgba(0, 0, 0, 0.7)']}
-          locations={[0, 0.6, 1]}
-          style={styles.overlay}
+    <View style={styles.container}>
+      <StatusBar style="light" />
+
+      {/* Hero Section */}
+      <View style={styles.heroContainer}>
+        <Image
+          source={{ uri: eventData.flyer || eventData.image }}
+          style={styles.heroImage}
         />
-        
+
+        {/* Purple Gradient Overlay */}
+        <LinearGradient
+          colors={['rgba(138, 43, 226, 0.8)', 'rgba(75, 0, 130, 0.9)']}
+          locations={[0, 1]}
+          style={styles.heroGradient}
+        />
+
         {/* Header Actions */}
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.glassButton}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.back();
-            }}
-          >
-            <BlurView
-              intensity={50}
-              tint="dark"
-              style={styles.glassButtonBlur}
-            >
-              <View style={styles.glassButtonOverlay}>
-                <Ionicons name="arrow-back" size={24} color="#ffffff" />
-              </View>
-            </BlurView>
+        <View style={[styles.headerActions, { paddingTop: insets.top + 10 }]}>
+          <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
+            <Ionicons name="chevron-back" size={24} color="#ffffff" />
           </TouchableOpacity>
 
-          <View style={styles.rightActions}>
-            <TouchableOpacity style={styles.glassButton} onPress={handleShare}>
-              <BlurView
-                intensity={50}
-                tint="dark"
-                style={styles.glassButtonBlur}
-              >
-                <View style={styles.glassButtonOverlay}>
-                  <Ionicons name="share-outline" size={20} color="#ffffff" />
-                </View>
-              </BlurView>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.glassButton} onPress={handleFavorite}>
-              <BlurView
-                intensity={50}
-                tint="dark"
-                style={styles.glassButtonBlur}
-              >
-                <View style={styles.glassButtonOverlay}>
-                  <Ionicons
-                    name={isFavorite ? "heart" : "heart-outline"}
-                    size={20}
-                    color={isFavorite ? "#FF6B6B" : "#ffffff"}
-                  />
-                </View>
-              </BlurView>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
+            <Ionicons name="share-outline" size={20} color="#ffffff" />
+          </TouchableOpacity>
         </View>
 
-        {/* Header Info */}
-        <View style={styles.headerInfo}>
-          <View style={styles.dateBadge}>
-            <BlurView
-              intensity={40}
-              tint="dark"
-              style={styles.dateBadgeBlur}
-            >
-              <View style={styles.dateBadgeOverlay}>
-                <Text style={styles.dateNumber}>{event.date}</Text>
-                <Text style={styles.dateMonth}>{event.month}</Text>
-              </View>
-            </BlurView>
+        {/* Event Info */}
+        <View style={styles.heroContent}>
+          <View style={styles.heroHeader}>
+            <Text style={styles.heroSubtitle}>{eventData.subtitle}</Text>
+            <Text style={styles.heroLocation}>{eventData.location}</Text>
           </View>
-          <Text style={styles.headerSubtitle}>{event.subtitle}</Text>
-          <Text style={styles.headerTitle}>{event.title}</Text>
+
+          <Text style={styles.heroTitle}>{eventData.name}</Text>
+
+          {/* Event Dates */}
+          <View style={styles.eventDates}>
+            <Text style={styles.secretLocation}>SECRET LOCATION</Text>
+            <Text style={styles.dateRange}>MAR 14 OCT</Text>
+            <Text style={styles.dateLocation}>DIA DE LANCHA - PLAYA PRIVADA MIE 15 OCT</Text>
+            <Text style={styles.dateLocation}>PROVENZA JUE 16 OCT</Text>
+            <Text style={styles.dateLocation}>BAMBORA VIE 17 OCT</Text>
+          </View>
         </View>
       </View>
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Event Details Cards */}
-        <View style={styles.detailsContainer}>
-          <View style={styles.detailCard}>
-            <View style={styles.detailIcon}>
-              <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
+        {/* Glass Card Section */}
+        <View style={styles.glassCard}>
+          <BlurView
+            intensity={40}
+            tint="systemThinMaterialDark"
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={styles.glassCardContent}>
+            {/* Event Badge */}
+            <View style={styles.eventBadge}>
+              <Text style={styles.eventBadgeText}>Evento</Text>
             </View>
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Fecha y Hora</Text>
-              <Text style={styles.detailValue}>{event.dates} • {event.time}</Text>
+
+            <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+              <Ionicons name="share-outline" size={20} color="#ffffff" />
+              <Text style={styles.shareButtonText}>Compartir</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.cardTitle}>{eventData.name}</Text>
+
+          {/* Info Cards */}
+          <View style={styles.infoCards}>
+            {/* Date Card */}
+            <View style={styles.infoCard}>
+              <Ionicons name="calendar-outline" size={24} color="#ffffff" />
+              <View style={styles.infoCardContent}>
+                <Text style={styles.infoCardLabel}>Fecha</Text>
+                <Text style={styles.infoCardValue}>{eventData.date}</Text>
+                <Text style={styles.infoCardTime}>{eventData.time}</Text>
+              </View>
+            </View>
+
+            {/* Location Card */}
+            <View style={styles.infoCard}>
+              <Ionicons name="location-outline" size={24} color="#ffffff" />
+              <View style={styles.infoCardContent}>
+                <Text style={styles.infoCardLabel}>Lugar</Text>
+                <Text style={styles.infoCardValue}>{eventData.venue}</Text>
+                <Text style={styles.infoCardSubtitle}>{eventData.city}</Text>
+              </View>
+            </View>
+
+            {/* Age Limit Card */}
+            <View style={styles.infoCard}>
+              <Ionicons name="person-outline" size={24} color="#ffffff" />
+              <View style={styles.infoCardContent}>
+                <Text style={styles.infoCardLabel}>Edad mínima</Text>
+                <Text style={styles.infoCardValue}>{eventData.ageLimit}</Text>
+              </View>
             </View>
           </View>
 
-          <View style={styles.detailCard}>
-            <View style={styles.detailIcon}>
-              <Ionicons name="location-outline" size={20} color={theme.colors.primary} />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Ubicación</Text>
-              <Text style={styles.detailValue}>{event.location}</Text>
-            </View>
-          </View>
-
-          <View style={styles.detailCard}>
-            <View style={styles.detailIcon}>
-              <Ionicons name="pricetag-outline" size={20} color={theme.colors.primary} />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Precio</Text>
-              <Text style={styles.detailValue}>{event.price}</Text>
-            </View>
-          </View>
+          {/* Tickets Section */}
+          <TouchableOpacity
+            style={[styles.ticketButton, !eventData.ticketsAvailable && styles.ticketButtonDisabled]}
+            disabled={!eventData.ticketsAvailable}
+            onPress={() => {
+              if (eventData.ticketsAvailable) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                // Navigate to tickets page
+              } else {
+                Alert.alert('No disponible', 'Los tickets no están disponibles en este momento');
+              }
+            }}
+          >
+            <Text style={styles.ticketButtonText}>
+              {eventData.ticketsAvailable ? 'Comprar tickets' : 'Sin tickets disponibles'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Description */}
+        {/* Event Details Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Descripción</Text>
-          <Text style={styles.description}>{event.description}</Text>
+          <Text style={styles.sectionTitle}>Acerca del evento</Text>
+
+          <View style={styles.eventDetailItem}>
+            <View style={styles.eventDetailIcon}>
+              <Ionicons name="calendar-outline" size={18} color="#ffffff" />
+            </View>
+            <Text style={styles.eventDetailText}>Semana Sabana/Rosario (13-19 OCT)</Text>
+          </View>
+
+          <View style={styles.eventDetailItem}>
+            <View style={styles.eventDetailIcon}>
+              <Ionicons name="location-outline" size={18} color="#ffffff" />
+            </View>
+            <Text style={styles.eventDetailText}>Secret Location - Martes 14 OCT</Text>
+          </View>
+
+          <View style={styles.eventDetailItem}>
+            <View style={styles.eventDetailIcon}>
+              <Ionicons name="boat-outline" size={18} color="#ffffff" />
+            </View>
+            <Text style={styles.eventDetailText}>Día de Lancha - Miércoles 15 OCT | Playa Privada</Text>
+          </View>
+
+          <Text style={styles.eventNote}>** No incluye día de lanchas</Text>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.secondaryButton} onPress={handleShare}>
-            <Ionicons name="share-outline" size={20} color={theme.colors.text} />
-            <Text style={styles.secondaryButtonText}>Compartir</Text>
-          </TouchableOpacity>
+        {/* Organizers Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Organizadores</Text>
 
-          <TouchableOpacity style={styles.buyButton} onPress={handleBuyTickets}>
-            <Text style={styles.buyButtonText}>Comprar Entradas</Text>
-            <Ionicons name="arrow-forward" size={20} color="#ffffff" />
+          <View style={styles.organizerCard}>
+            <View style={styles.organizerLogo}>
+              <Text style={styles.organizerLogoText}>NN</Text>
+            </View>
+            <Text style={styles.organizerName}>Nautical Nite</Text>
+          </View>
+        </View>
+
+        {/* Venue Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{eventData.venue}</Text>
+          <Text style={styles.venueSubtitle}>{eventData.city}</Text>
+
+          {/* Map Container */}
+          <TouchableOpacity style={styles.mapContainer}>
+            <View style={styles.mapPlaceholder}>
+              <Ionicons name="map-outline" size={48} color="#ffffff" />
+              <Text style={styles.mapText}>Ver en Google Maps</Text>
+              <Text style={styles.coordinatesText}>{eventData.coordinates}</Text>
+            </View>
           </TouchableOpacity>
         </View>
+
+        {/* Hunt Brand Section */}
+        <View style={styles.brandSection}>
+          <View style={styles.brandLogo}>
+            <Ionicons name="apps" size={24} color="#ffffff" />
+          </View>
+          <View style={styles.brandContent}>
+            <Text style={styles.brandTitle}>Hunt</Text>
+            <Text style={styles.brandSubtitle}>Tu plataforma de tickets para eventos</Text>
+          </View>
+        </View>
+
+        {/* Bottom padding for safe area */}
+        <View style={{ height: insets.bottom + 20 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#000000',
   },
-  imageContainer: {
-    height: height * 0.5,
+  loadingText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // Hero Section
+  heroContainer: {
+    height: height * 0.6,
     position: 'relative',
   },
-  headerImage: {
+  heroImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  overlay: {
+  heroGradient: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   headerActions: {
     position: 'absolute',
-    top: 50,
+    top: 0,
     left: 20,
     right: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  glassButton: {
+  headerButton: {
     width: 44,
     height: 44,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: 22,
-    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 0.5,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
-  glassButtonBlur: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 22,
-  },
-  glassButtonOverlay: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rightActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  headerInfo: {
+  heroContent: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 40,
     left: 20,
     right: 20,
   },
-  dateBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
-  dateBadgeBlur: {
-    borderRadius: 12,
-  },
-  dateBadgeOverlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    alignItems: 'center',
+  heroHeader: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  dateNumber: {
-    ...Typography.title3,
-    fontSize: 24,
-    color: '#ffffff',
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-  dateMonth: {
-    ...Typography.caption,
-    color: '#ffffff',
-    textTransform: 'uppercase',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  headerSubtitle: {
+  heroSubtitle: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#ffffff',
-    opacity: 0.9,
-    marginBottom: 8,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    letterSpacing: 2,
   },
-  headerTitle: {
-    ...Typography.title1,
-    fontSize: 36,
+  heroLocation: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.8)',
+    letterSpacing: 2,
+  },
+  heroTitle: {
+    fontSize: 48,
     fontWeight: '800',
     color: '#ffffff',
-    lineHeight: 40,
-    letterSpacing: -0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    textShadowRadius: 4,
+    lineHeight: 52,
+    marginBottom: 30,
+    textAlign: 'center',
+    letterSpacing: -1,
   },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  detailsContainer: {
-    marginBottom: 32,
-  },
-  detailCard: {
-    flexDirection: 'row',
+  eventDates: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 12,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-    shadowColor: theme.colors.shadow,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    gap: 8,
   },
-  detailIcon: {
-    width: 44,
-    height: 44,
-    backgroundColor: theme.colors.card,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-  },
-  detailContent: {
-    flex: 1,
-  },
-  detailLabel: {
+  secretLocation: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  detailValue: {
-    fontSize: 16,
-    color: theme.colors.text,
     fontWeight: '600',
-    lineHeight: 20,
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 1,
   },
-  sectionTitle: {
-    ...Typography.title3,
-    fontSize: 24,
-    fontWeight: '700',
-    color: theme.colors.text,
-    marginBottom: 16,
-    letterSpacing: -0.3,
-  },
-  description: {
-    ...Typography.body,
-    fontSize: 17,
-    color: theme.colors.textSecondary,
-    lineHeight: 26,
-    fontWeight: '400',
-  },
-  actionsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginVertical: 20,
-    marginBottom: 40,
-  },
-  secondaryButton: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.surface,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    borderWidth: 0.5,
-    borderColor: theme.colors.border,
-    gap: 8,
-  },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.colors.text,
-  },
-  buyButton: {
-    flex: 2,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 18,
-    paddingHorizontal: 32,
-    borderRadius: 16,
-    gap: 8,
-    shadowColor: theme.colors.primary,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  buyButtonText: {
+  dateRange: {
     fontSize: 18,
     fontWeight: '700',
     color: '#ffffff',
+    letterSpacing: 1,
+  },
+  dateLocation: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
+  },
+  // Content
+  content: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
+  // Glass Card
+  glassCard: {
+    margin: 20,
+    marginTop: -40,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  glassCardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 0,
+  },
+  eventBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  eventBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  shareButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  cardTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#ffffff',
+    padding: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    lineHeight: 32,
+  },
+  // Info Cards
+  infoCards: {
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  infoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 16,
+  },
+  infoCardContent: {
+    flex: 1,
+  },
+  infoCardLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 4,
+  },
+  infoCardValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+    lineHeight: 20,
+  },
+  infoCardTime: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  infoCardSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+  },
+  // Tickets
+  ticketButton: {
+    backgroundColor: '#ffffff',
+    margin: 20,
+    marginTop: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  ticketButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  ticketButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  // Sections
+  section: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 20,
+  },
+  // Event Details
+  eventDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  eventDetailIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 107, 107, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eventDetailText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.9)',
+    lineHeight: 20,
+  },
+  eventNote: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginTop: 16,
+    fontStyle: 'italic',
+  },
+  // Organizers
+  organizerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 16,
+  },
+  organizerLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  organizerLogoText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  organizerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  // Venue
+  venueSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 16,
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  mapPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  mapText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  coordinatesText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  // Brand
+  brandSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    gap: 16,
+  },
+  brandLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brandContent: {
+    flex: 1,
+  },
+  brandTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  brandSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginTop: 2,
   },
 });

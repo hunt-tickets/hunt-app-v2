@@ -139,7 +139,7 @@ export default function VendedoresScreen() {
         {/* Simple Sellers List */}
         <View style={styles.sellersSection}>
           <Text style={styles.sectionTitle}>Lista de Vendedores</Text>
-          {sellers.map((seller) => (
+          {Array.isArray(sellers) ? sellers.map((seller) => (
             <TouchableOpacity
               key={seller.id}
               style={styles.sellerRow}
@@ -156,7 +156,7 @@ export default function VendedoresScreen() {
               </View>
               <View style={[styles.statusDot, { backgroundColor: seller.status === 'active' ? '#34C759' : '#FF3B30' }]} />
             </TouchableOpacity>
-          ))}
+          )) : null}
         </View>
       </ScrollView>
     </View>

@@ -21,6 +21,32 @@ interface LiquidGlassCardProps {
 }
 
 export default function LiquidGlassCard({ event, onPress, onShare }: LiquidGlassCardProps) {
+
+  const handleCardPress = () => {
+    console.log('🟦 [LiquidGlassCard] Card pressed for event:', event.id);
+    console.log('🟦 [LiquidGlassCard] Event name:', event.name);
+    console.log('🟦 [LiquidGlassCard] About to call onPress function');
+
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      console.log('🟦 [LiquidGlassCard] Haptics triggered, calling onPress...');
+      onPress();
+      console.log('🟦 [LiquidGlassCard] onPress called successfully');
+    } catch (error) {
+      console.error('🔴 [LiquidGlassCard] Error in handleCardPress:', error);
+    }
+  };
+
+  const handleSharePress = (e: any) => {
+    console.log('Share button pressed, stopping propagation');
+    // Prevent card press
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onShare();
+  };
+
   return (
     <Pressable
       style={({ pressed }) => [
@@ -35,10 +61,7 @@ export default function LiquidGlassCard({ event, onPress, onShare }: LiquidGlass
           }
         })
       ]}
-      onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        onPress();
-      }}
+      onPress={handleCardPress}
       android_ripple={{
         color: 'rgba(255, 255, 255, 0.1)',
         borderless: false,
@@ -54,14 +77,12 @@ export default function LiquidGlassCard({ event, onPress, onShare }: LiquidGlass
       />
 
       {/* Card Actions with Liquid Glass */}
-      <View style={styles.cardActions}>
+      <View style={styles.cardActions} pointerEvents="box-none">
         {/* Share Button with Liquid Glass */}
         <Pressable
           style={styles.actionButton}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onShare();
-          }}
+          onPress={handleSharePress}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <BlurView
             intensity={40}
@@ -75,7 +96,7 @@ export default function LiquidGlassCard({ event, onPress, onShare }: LiquidGlass
         </Pressable>
 
         {/* Date Container with Liquid Glass */}
-        <View style={styles.dateContainer}>
+        <View style={styles.dateContainer} pointerEvents="none">
           <BlurView
             intensity={40}
             tint="dark"
@@ -90,7 +111,7 @@ export default function LiquidGlassCard({ event, onPress, onShare }: LiquidGlass
       </View>
 
       {/* Event Info */}
-      <View style={styles.eventInfo}>
+      <View style={styles.eventInfo} pointerEvents="none">
         <Text style={styles.eventTitle}>{event.name}</Text>
         <View style={styles.locationContainer}>
           <Ionicons name="location-outline" size={18} color="#cccccc" />

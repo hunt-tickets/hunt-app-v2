@@ -74,7 +74,15 @@ export default function HomeScreen() {
       console.log('Events loaded:', response.events.length);
     } catch (error) {
       console.error('Error loading events:', error);
-      // Keep empty events array as fallback
+
+      // Check if it's an authentication error and redirect to login
+      if (error instanceof Error && error.message.includes('Authentication required')) {
+        console.log('Authentication error detected, redirecting to login...');
+        router.replace('/auth/login');
+        return;
+      }
+
+      // Keep empty events array as fallback for other errors
     } finally {
       setLoading(false);
     }
@@ -157,26 +165,41 @@ export default function HomeScreen() {
   };
 
   const handleEventPress = (event: Event) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log('Event pressed:', event.id);
-    console.log('Attempting navigation...');
+    console.log('🟢 [Homepage] ==========================================');
+    console.log('🟢 [Homepage] handleEventPress called');
+    console.log('🟢 [Homepage] Event ID:', event.id);
+    console.log('🟢 [Homepage] Event name:', event.name);
+    console.log('🟢 [Homepage] Event object:', JSON.stringify(event, null, 2));
 
-    // Try multiple navigation approaches
-    setTimeout(() => {
-      try {
-        console.log('Using router.push');
-        router.push(`/event/${event.id}`);
-      } catch (error) {
-        console.error('router.push failed:', error);
-        try {
-          console.log('Using router.navigate');
-          router.navigate(`/event/${event.id}`);
-        } catch (error2) {
-          console.error('router.navigate failed:', error2);
-          Alert.alert('Error', 'No se pudo navegar al evento');
-        }
-      }
-    }, 100);
+    try {
+      console.log('🟢 [Homepage] About to trigger haptics...');
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      console.log('🟢 [Homepage] Haptics triggered successfully');
+
+      const path = `/event/${event.id}`;
+      console.log('🟢 [Homepage] Constructed path:', path);
+
+      console.log('🟢 [Homepage] About to call router.push with href object...');
+      console.log('🟢 [Homepage] Router object:', router);
+
+      const directPath = `/event/${event.id}`;
+      console.log('🟢 [Homepage] Using direct path:', directPath);
+      // Try direct string navigation instead of object
+      router.push(directPath);
+      console.log('🟢 [Homepage] Direct router.push called');
+      return; // Exit early to test this approach
+
+      const navigationParams = { pathname: '/(tabs)/event/[id]' as const, params: { id: event.id } };
+      console.log('🟢 [Homepage] Navigation params:', JSON.stringify(navigationParams, null, 2));
+
+      router.push(navigationParams);
+      console.log('🟢 [Homepage] router.push called successfully');
+
+    } catch (error) {
+      console.error('🔴 [Homepage] Navigation error:', error);
+      console.error('🔴 [Homepage] Error stack:', error instanceof Error ? error.stack : 'No stack');
+      Alert.alert('Error de navegación', `No se pudo navegar al evento. Error: ${error}`);
+    }
   };
 
 
@@ -297,14 +320,65 @@ export default function HomeScreen() {
             <EventSkeleton />
           </>
         ) : events.length > 0 ? (
-          events.map((event) => (
-            <LiquidGlassCard
-              key={event.id}
-              event={event}
-              onPress={() => handleEventPress(event)}
-              onShare={() => handleShare(event)}
-            />
-          ))
+          <>
+            {/* DEBUG: Test button for navigation */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: 'red',
+                padding: 20,
+                margin: 20,
+                borderRadius: 10,
+              }}
+              onPress={() => {
+                console.log('🔶 [DEBUG] Test button pressed');
+                try {
+                  console.log('🔶 [DEBUG] Testing navigation to test-event page');
+                  router.push('/test-event');
+                  console.log('🔶 [DEBUG] Test navigation called successfully');
+                } catch (error) {
+                  console.error('🔶 [DEBUG] Test navigation failed:', error);
+                }
+              }}
+            >
+              <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                TEST NAVIGATION (to test-event)
+              </Text>
+            </TouchableOpacity>
+
+            {/* DEBUG: Test button for event navigation */}
+            <TouchableOpacity
+              style={{
+                backgroundColor: 'orange',
+                padding: 20,
+                margin: 20,
+                borderRadius: 10,
+              }}
+              onPress={() => {
+                console.log('🔶 [DEBUG] Event test button pressed');
+                try {
+                  console.log('🔶 [DEBUG] Attempting event navigation');
+                  const testId = 'test-123';
+                  router.push({ pathname: '/(tabs)/event/[id]', params: { id: testId } });
+                  console.log('🔶 [DEBUG] Event navigation called successfully');
+                } catch (error) {
+                  console.error('🔶 [DEBUG] Event test navigation failed:', error);
+                }
+              }}
+            >
+              <Text style={{ color: 'white', fontWeight: 'bold' }}>
+                TEST EVENT NAVIGATION (with test-123)
+              </Text>
+            </TouchableOpacity>
+
+            {events.map((event) => (
+              <LiquidGlassCard
+                key={event.id}
+                event={event}
+                onPress={() => handleEventPress(event)}
+                onShare={() => handleShare(event)}
+              />
+            ))}
+          </>
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={64} color="rgba(255, 255, 255, 0.3)" />

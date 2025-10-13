@@ -313,6 +313,33 @@ export default function BilleteraScreen() {
           </View>
         ) : (
           <View style={styles.cashlessContent}>
+            {/* Coming Soon Overlay */}
+            <View style={styles.comingSoonOverlay}>
+              <BlurView intensity={20} tint="dark" style={styles.comingSoonBlur}>
+                <View style={styles.comingSoonContent}>
+                  <Ionicons name="time-outline" size={48} color="rgba(255, 255, 255, 0.8)" />
+                  <Text style={styles.comingSoonTitle}>Próximamente</Text>
+                  <View style={styles.benefitsList}>
+                    <View style={styles.benefitItem}>
+                      <Ionicons name="card-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                      <Text style={styles.benefitText}>Paga tickets y compras en eventos</Text>
+                    </View>
+                    <View style={styles.benefitItem}>
+                      <Ionicons name="people-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                      <Text style={styles.benefitText}>Transfiere dinero a otros usuarios</Text>
+                    </View>
+                    <View style={styles.benefitItem}>
+                      <Ionicons name="flash-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                      <Text style={styles.benefitText}>Recargas instantáneas</Text>
+                    </View>
+                    <View style={styles.benefitItem}>
+                      <Ionicons name="wallet-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                      <Text style={styles.benefitText}>Retiros súper fáciles</Text>
+                    </View>
+                  </View>
+                </View>
+              </BlurView>
+            </View>
             {/* Saldo Box Rediseñado */}
             <View style={styles.saldoCard}>
               {/* Badge de Puntos */}
@@ -667,6 +694,55 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   // iOS 26 Cashless Glass
   cashlessContent: {
     paddingHorizontal: 16,
+    position: 'relative',
+  },
+
+  // Coming Soon Overlay
+  comingSoonOverlay: {
+    position: 'absolute',
+    top: -16,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  comingSoonBlur: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 0,
+  },
+  comingSoonContent: {
+    alignItems: 'center',
+    gap: 16,
+    padding: 40,
+  },
+  comingSoonTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#ffffff',
+    textAlign: 'center',
+    letterSpacing: -0.5,
+  },
+  benefitsList: {
+    gap: 12,
+    alignItems: 'flex-start',
+    width: '100%',
+    paddingHorizontal: 40,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  benefitText: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontWeight: '500',
+    flex: 1,
   },
   saldoCard: {
     backgroundColor: theme.colors.surface,

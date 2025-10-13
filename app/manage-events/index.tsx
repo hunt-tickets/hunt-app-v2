@@ -23,6 +23,7 @@ import { useTheme, Theme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { ApiService, AdminEvent } from '../../lib/api';
 import ManageEventsSkeleton from '../../components/manage-events-skeleton';
+import EventCard from '../../components/EventCard';
 
 const { width } = Dimensions.get('window');
 // Horizontal card dimensions - full width
@@ -62,6 +63,13 @@ export default function ManageEventsScreen() {
       const userToken = session?.accessToken;
       const apiEvents = await ApiService.getAllEventsOrdered(userToken);
 
+      // Validate that apiEvents is an array
+      if (!Array.isArray(apiEvents)) {
+        console.error('API response is not an array:', apiEvents);
+        setEvents([]);
+        return;
+      }
+
       // Map API events to component interface
       const mappedEvents: MappedEvent[] = apiEvents.map(event => {
         // Parse date string (e.g., "19 OCT" or " ")
@@ -79,6 +87,8 @@ export default function ManageEventsScreen() {
             componentStatus = 'draft';
           } else if (statusLower === 'pasado' || statusLower === 'past' || statusLower === 'finalizado') {
             componentStatus = 'past';
+          } else if (statusLower === 'inactivo' || statusLower === 'inactive') {
+            componentStatus = 'draft'; // Treat inactive as draft
           }
         } else {
           // If no status, default to draft
@@ -98,9 +108,23 @@ export default function ManageEventsScreen() {
           image: event.flyer || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&h=600&fit=crop',
           attendees: 0 // API doesn't provide attendees in this endpoint
         };
+      }).filter(event => event.id && event.title); // Filter out events without valid ID or name
+
+      // Sort events: events with dates first, events without dates last
+      const sortedEvents = mappedEvents.sort((a, b) => {
+        // Check if events have valid dates (not empty or just spaces)
+        const aHasDate = a.date.trim() !== '' && a.month.trim() !== '';
+        const bHasDate = b.date.trim() !== '' && b.month.trim() !== '';
+
+        // If one has date and other doesn't, prioritize the one with date
+        if (aHasDate && !bHasDate) return -1;
+        if (!aHasDate && bHasDate) return 1;
+
+        // If both have dates or both don't have dates, maintain current order
+        return 0;
       });
 
-      setEvents(mappedEvents);
+      setEvents(sortedEvents);
     } catch (error) {
       console.error('Error loading events:', error);
       Alert.alert('Error', 'No se pudieron cargar los eventos');
@@ -171,6 +195,18 @@ export default function ManageEventsScreen() {
     <View style={styles.container}>
       <StatusBar style={theme.isDark ? "light" : "dark"} />
 
+      {/* Header with Gradient Overlay */}
+      <View style={[styles.headerOverlay, { paddingTop: insets.top + 20 }]}>
+        <LinearGradient
+          colors={theme.colors.gradientOverlay}
+          locations={[0, 0.7, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.headerContent}>
+          <Text style={styles.title}>Mis Eventos</Text>
+        </View>
+      </View>
+
       {/* Content */}
       <ScrollView
         style={styles.content}
@@ -186,6 +222,35 @@ export default function ManageEventsScreen() {
             onChange={handleFilterChange}
             style={styles.segmentedControl}
           />
+
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <BlurView
+              intensity={40}
+              tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+              style={StyleSheet.absoluteFillObject}
+            />
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="search" size={20} color="rgba(255, 255, 255, 0.6)" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Buscar eventos..."
+                placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                value={searchText}
+                onChangeText={setSearchText}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {searchText.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearchText('')}
+                  style={styles.clearButton}
+                >
+                  <Ionicons name="close-circle" size={20} color="rgba(255, 255, 255, 0.6)" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         </View>
 
         {/* Events List */}
@@ -193,82 +258,13 @@ export default function ManageEventsScreen() {
           <ManageEventsSkeleton />
         ) : filteredEvents.length > 0 ? (
           filteredEvents.map((event) => (
-            <TouchableOpacity
+            <EventCard
               key={event.id}
-              style={styles.eventCard}
-              onPress={() => handleEventPress(event)}
-              activeOpacity={0.95}
-            >
-              {/* Background Image */}
-              <Image source={{ uri: event.image }} style={styles.eventImage} />
-
-              {/* Enhanced Gradient Overlay - same as LiquidGlassCard */}
-              <LinearGradient
-                colors={['transparent', 'rgba(8, 8, 8, 0.7)', 'rgba(10, 10, 10, 0.95)']}
-                style={styles.overlay}
-                locations={[0, 0.4, 0.8]}
-              />
-
-              {/* Card Actions with Liquid Glass */}
-              <View style={styles.cardActions}>
-                {/* Share Button with Liquid Glass */}
-                <TouchableOpacity
-                  style={styles.actionButton}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    console.log('Share event', event.id);
-                  }}
-                >
-                  <BlurView
-                    intensity={40}
-                    tint="dark"
-                    style={styles.actionButtonBlur}
-                  >
-                    <View style={styles.actionButtonOverlay}>
-                      <Ionicons name="share-outline" size={16} color="#ffffff" />
-                    </View>
-                  </BlurView>
-                </TouchableOpacity>
-
-                {/* Date Container with Liquid Glass */}
-                <View style={styles.dateContainer}>
-                  <BlurView
-                    intensity={40}
-                    tint="dark"
-                    style={styles.dateBlur}
-                  >
-                    <View style={styles.dateOverlay}>
-                      <Text style={styles.eventMonth}>{event.month.toUpperCase()}</Text>
-                      <Text style={styles.eventDay}>{event.date}</Text>
-                    </View>
-                  </BlurView>
-                </View>
-              </View>
-
-              {/* Status Badge - only show if status exists */}
-              {event.status && (
-                <View style={styles.statusBadge}>
-                  <BlurView
-                    intensity={50}
-                    tint="dark"
-                    style={styles.statusBlur}
-                  >
-                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(event.status) }]} />
-                    <Text style={[styles.statusText, { color: getStatusColor(event.status) }]}>
-                      {getStatusLabel(event.status)}
-                    </Text>
-                  </BlurView>
-                </View>
-              )}
-
-              {/* Event Content */}
-              <View style={styles.eventContent}>
-                <Text style={styles.eventTitle} numberOfLines={2}>
-                  {event.title}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              event={event}
+              onPress={handleEventPress}
+              getStatusColor={getStatusColor}
+              getStatusLabel={getStatusLabel}
+            />
           ))
         ) : (
           <View style={styles.emptyState}>
@@ -290,6 +286,29 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  // Header styles
+  headerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    height: 140,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    zIndex: 1,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   // Content styles
   content: {
     flex: 1,
@@ -307,45 +326,28 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
     width: '100%',
     height: 36,
   },
-  // Event Card styles - horizontal full width
-  eventCard: {
-    width: '100%',
-    height: CARD_HEIGHT,
-    borderRadius: 20,
+  searchContainer: {
+    marginTop: 16,
+    borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#0a0a0a',
     borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    marginBottom: 12,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
-  eventImage: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  // Card Actions
-  cardActions: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
+  searchInputContainer: {
     flexDirection: 'row',
-    gap: 8,
-    zIndex: 2,
-  },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    overflow: 'hidden',
-  },
-  actionButtonBlur: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: '500',
+  },
+  clearButton: {
+    padding: 4,
   },
   actionButtonOverlay: {
     width: '100%',

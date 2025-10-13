@@ -1,93 +1,117 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  Animated,
-} from 'react-native';
+import { View, StyleSheet, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { useTheme } from '../contexts/ThemeContext';
 
-const { width } = Dimensions.get('window');
-const CARD_HEIGHT = 160;
-
-export default function ManageEventsSkeleton() {
-  const shimmerValue = useRef(new Animated.Value(0)).current;
+const ManageEventsSkeleton = () => {
+  const { theme } = useTheme();
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const shimmerAnimation = Animated.loop(
-      Animated.timing(shimmerValue, {
+      Animated.timing(shimmerAnim, {
         toValue: 1,
         duration: 1500,
-        useNativeDriver: true,
+        easing: Easing.linear,
+        useNativeDriver: false,
       })
     );
     shimmerAnimation.start();
-    return () => shimmerAnimation.stop();
-  }, []);
 
-  const translateX = shimmerValue.interpolate({
+    return () => shimmerAnimation.stop();
+  }, [shimmerAnim]);
+
+  const translateX = shimmerAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-width, width],
+    outputRange: [-300, 300],
   });
 
   const SkeletonCard = () => (
-    <View style={styles.card}>
-      {/* Background with subtle gradient */}
-      <LinearGradient
-        colors={['rgba(255, 255, 255, 0.02)', 'rgba(255, 255, 255, 0.04)', 'rgba(255, 255, 255, 0.02)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={StyleSheet.absoluteFillObject}
-      />
-
-      {/* Shimmer overlay */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFillObject,
-          {
-            transform: [{ translateX }],
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={[
-            'transparent',
-            'rgba(255, 255, 255, 0.03)',
-            'rgba(255, 255, 255, 0.05)',
-            'rgba(255, 255, 255, 0.03)',
-            'transparent',
-          ]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.shimmer}
-        />
-      </Animated.View>
-
-      {/* Content skeleton structure */}
+    <View style={[styles.cardContainer, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.cardContent}>
-        {/* Top right area for date/action buttons */}
-        <View style={styles.topSection}>
-          <View style={styles.statusBadge} />
-          <View style={styles.topRight}>
-            <View style={styles.actionButton} />
-            <View style={styles.dateBox} />
+        {/* Image placeholder */}
+        <View style={[styles.imagePlaceholder, { backgroundColor: theme.colors.card }]}>
+          <Animated.View style={[styles.shimmerOverlay, { transform: [{ translateX }] }]}>
+            <LinearGradient
+              colors={[
+                'transparent',
+                theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
+                'transparent'
+              ]}
+              style={styles.shimmerGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            />
+          </Animated.View>
+        </View>
+
+        {/* Content */}
+        <View style={styles.textContent}>
+          {/* Title */}
+          <View style={[styles.titlePlaceholder, { backgroundColor: theme.colors.card }]}>
+            <Animated.View style={[styles.shimmerOverlay, { transform: [{ translateX }] }]}>
+              <LinearGradient
+                colors={[
+                  'transparent',
+                  theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
+                  'transparent'
+                ]}
+                style={styles.shimmerGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+            </Animated.View>
+          </View>
+
+          {/* Subtitle */}
+          <View style={[styles.subtitlePlaceholder, { backgroundColor: theme.colors.card }]}>
+            <Animated.View style={[styles.shimmerOverlay, { transform: [{ translateX }] }]}>
+              <LinearGradient
+                colors={[
+                  'transparent',
+                  theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
+                  'transparent'
+                ]}
+                style={styles.shimmerGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              />
+            </Animated.View>
+          </View>
+
+          {/* Date and status row */}
+          <View style={styles.bottomRow}>
+            <View style={[styles.datePlaceholder, { backgroundColor: theme.colors.card }]}>
+              <Animated.View style={[styles.shimmerOverlay, { transform: [{ translateX }] }]}>
+                <LinearGradient
+                  colors={[
+                    'transparent',
+                    theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
+                    'transparent'
+                  ]}
+                  style={styles.shimmerGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                />
+              </Animated.View>
+            </View>
+            <View style={[styles.statusPlaceholder, { backgroundColor: theme.colors.card }]}>
+              <Animated.View style={[styles.shimmerOverlay, { transform: [{ translateX }] }]}>
+                <LinearGradient
+                  colors={[
+                    'transparent',
+                    theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)',
+                    'transparent'
+                  ]}
+                  style={styles.shimmerGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                />
+              </Animated.View>
+            </View>
           </View>
         </View>
-
-        {/* Bottom area for title */}
-        <View style={styles.bottomSection}>
-          <View style={styles.titleLine} />
-          <View style={styles.titleLineShort} />
-        </View>
       </View>
-
-      {/* Bottom gradient overlay */}
-      <LinearGradient
-        colors={['transparent', 'rgba(10, 10, 10, 0.6)']}
-        style={styles.bottomGradient}
-        pointerEvents="none"
-      />
     </View>
   );
 
@@ -96,80 +120,83 @@ export default function ManageEventsSkeleton() {
       <SkeletonCard />
       <SkeletonCard />
       <SkeletonCard />
+      <SkeletonCard />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    flex: 1,
+    padding: 12,
   },
-  card: {
-    width: '100%',
-    height: CARD_HEIGHT,
+  cardContainer: {
     borderRadius: 20,
-    backgroundColor: 'rgba(20, 20, 20, 0.3)',
-    marginBottom: 12,
+    marginBottom: 16,
     overflow: 'hidden',
-    borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  shimmer: {
-    width: width * 0.7,
-    height: '100%',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   cardContent: {
-    flex: 1,
+    flexDirection: 'row',
     padding: 16,
+    height: 160,
+  },
+  imagePlaceholder: {
+    width: 120,
+    height: 128,
+    borderRadius: 16,
+    marginRight: 16,
+    overflow: 'hidden',
+  },
+  textContent: {
+    flex: 1,
     justifyContent: 'space-between',
   },
-  topSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  statusBadge: {
-    width: 80,
+  titlePlaceholder: {
     height: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 6,
+    borderRadius: 12,
+    marginBottom: 8,
+    overflow: 'hidden',
   },
-  topRight: {
+  subtitlePlaceholder: {
+    height: 18,
+    borderRadius: 9,
+    marginBottom: 16,
+    width: '80%',
+    overflow: 'hidden',
+  },
+  bottomRow: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  actionButton: {
-    width: 36,
-    height: 36,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 18,
-  },
-  dateBox: {
-    width: 52,
-    height: 56,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderRadius: 14,
-  },
-  bottomSection: {
-    gap: 8,
-  },
-  titleLine: {
-    width: '70%',
-    height: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 4,
-  },
-  titleLineShort: {
-    width: '40%',
+  datePlaceholder: {
     height: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 4,
+    width: 100,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
-  bottomGradient: {
+  statusPlaceholder: {
+    height: 24,
+    width: 60,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  shimmerOverlay: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
-    height: 80,
+    bottom: 0,
+  },
+  shimmerGradient: {
+    flex: 1,
+    width: 300,
   },
 });
+
+export default ManageEventsSkeleton;
