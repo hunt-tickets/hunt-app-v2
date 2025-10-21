@@ -1895,8 +1895,8 @@ export default function EventDashboard() {
             ]}
           >
             <BlurView
-              intensity={80}
-              tint="systemUltraThinMaterialDark"
+              glassEffectStyle="regular"
+              tintColor="rgba(0,0,0,0.3)"
               style={StyleSheet.absoluteFillObject}
               experimentalBlurMethod="dimezisBlurView"
             />
@@ -2096,8 +2096,8 @@ export default function EventDashboard() {
         {error && (
           <View style={styles.errorCard}>
             <BlurView
-              intensity={40}
-              tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+              glassEffectStyle="regular"
+              tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
               style={StyleSheet.absoluteFillObject}
             />
             <View style={styles.errorContent}>
@@ -2131,8 +2131,8 @@ export default function EventDashboard() {
                       activeOpacity={0.8}
                     >
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.chartToggleOverlay}>
@@ -2186,8 +2186,8 @@ export default function EventDashboard() {
             <View style={styles.mainKpisGrid}>
               <View style={styles.mainKpiCard}>
                 <BlurView
-                  intensity={40}
-                  tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                  glassEffectStyle="regular"
+                  tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                   style={StyleSheet.absoluteFillObject}
                 />
                 <View style={styles.mainKpiContent}>
@@ -2203,8 +2203,8 @@ export default function EventDashboard() {
 
               <View style={styles.mainKpiCard}>
                 <BlurView
-                  intensity={40}
-                  tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                  glassEffectStyle="regular"
+                  tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                   style={StyleSheet.absoluteFillObject}
                 />
                 <View style={styles.mainKpiContent}>
@@ -2230,8 +2230,8 @@ export default function EventDashboard() {
                 {/* Age Distribution */}
                 <View style={styles.demographicsCard}>
                   <BlurView
-                    intensity={40}
-                    tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                    glassEffectStyle="regular"
+                    tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                     style={StyleSheet.absoluteFillObject}
                   />
                   <View style={styles.demographicsContent}>
@@ -2245,8 +2245,8 @@ export default function EventDashboard() {
                 {/* Gender Distribution */}
                 <View style={styles.demographicsCard}>
                   <BlurView
-                    intensity={40}
-                    tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                    glassEffectStyle="regular"
+                    tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                     style={StyleSheet.absoluteFillObject}
                   />
                   <View style={styles.demographicsContent}>
@@ -2262,8 +2262,8 @@ export default function EventDashboard() {
               <View style={styles.fullWidthCard}>
                 <View style={styles.fullWidthBlurBackground}>
                   <BlurView
-                    intensity={40}
-                    tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                    glassEffectStyle="regular"
+                    tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                     style={StyleSheet.absoluteFillObject}
                   />
                 </View>
@@ -2279,8 +2279,8 @@ export default function EventDashboard() {
               {/* Sales Channels */}
               <View style={styles.fullWidthCard}>
                 <BlurView
-                  intensity={40}
-                  tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                  glassEffectStyle="regular"
+                  tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                   style={StyleSheet.absoluteFillObject}
                 />
                 <View style={[styles.fullWidthContent, { backgroundColor: 'rgba(255, 255, 255, 0.05)' }]}>
@@ -2299,8 +2299,8 @@ export default function EventDashboard() {
               {eventStats.promoters.map((promoter, index) => (
                 <View key={promoter.promoter_id} style={styles.promoterCard}>
                   <BlurView
-                    intensity={40}
-                    tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                    glassEffectStyle="regular"
+                    tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                     style={StyleSheet.absoluteFillObject}
                   />
                   <View style={styles.promoterContent}>
@@ -2352,8 +2352,8 @@ export default function EventDashboard() {
                   <View style={styles.trafficKpisGrid}>
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2367,8 +2367,8 @@ export default function EventDashboard() {
 
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2382,8 +2382,8 @@ export default function EventDashboard() {
 
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2397,8 +2397,8 @@ export default function EventDashboard() {
 
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2414,8 +2414,8 @@ export default function EventDashboard() {
                   {/* App Traffic Chart */}
                   <View style={styles.trafficChartCard}>
                     <BlurView
-                      intensity={40}
-                      tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                      glassEffectStyle="regular"
+                      tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                       style={StyleSheet.absoluteFillObject}
                     />
                     <View style={styles.trafficChartContent}>
@@ -2433,8 +2433,8 @@ export default function EventDashboard() {
                   <View style={styles.trafficKpisGrid}>
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2448,8 +2448,8 @@ export default function EventDashboard() {
 
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2463,8 +2463,8 @@ export default function EventDashboard() {
 
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2478,8 +2478,8 @@ export default function EventDashboard() {
 
                     <View style={styles.trafficKpiCard}>
                       <BlurView
-                        intensity={40}
-                        tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                        glassEffectStyle="regular"
+                        tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                         style={StyleSheet.absoluteFillObject}
                       />
                       <View style={styles.trafficKpiContent}>
@@ -2495,8 +2495,8 @@ export default function EventDashboard() {
                   {/* Web Traffic Sources */}
                   <View style={styles.trafficSourcesCard}>
                     <BlurView
-                      intensity={40}
-                      tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                      glassEffectStyle="regular"
+                      tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                       style={StyleSheet.absoluteFillObject}
                     />
                     <View style={styles.trafficSourcesContent}>

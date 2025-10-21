@@ -2,7 +2,7 @@ import { Stack, router } from 'expo-router';
 import { Platform, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -45,15 +45,15 @@ export default function ProfileLayout() {
                 router.back();
               }}
             >
-              <BlurView
-                intensity={60}
-                tint={theme.isDark ? "dark" : "light"}
+              <GlassView
+                glassEffectStyle="regular"
+                tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                 style={styles.blurView}
               >
                 <View style={styles.buttonOverlay}>
                   <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
                 </View>
-              </BlurView>
+              </GlassView>
             </TouchableOpacity>
           ),
         }}

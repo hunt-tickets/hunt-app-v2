@@ -12,7 +12,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,6 +37,7 @@ export default function BilleteraScreen() {
   const [transactionSelectedIndex, setTransactionSelectedIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [qrModalVisible, setQrModalVisible] = useState(false);
+  const [showComingSoonOverlay, setShowComingSoonOverlay] = useState(true);
   const insets = useSafeAreaInsets();
 
   // QR Modal animations
@@ -66,6 +67,16 @@ export default function BilleteraScreen() {
       });
     }
   }, [qrModalVisible]);
+
+  // Auto-hide coming soon overlay after 2 seconds
+  React.useEffect(() => {
+    if (activeTab === 'cashless' && showComingSoonOverlay) {
+      const timer = setTimeout(() => {
+        setShowComingSoonOverlay(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, showComingSoonOverlay]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -281,7 +292,7 @@ export default function BilleteraScreen() {
                   colors={['rgba(255, 255, 255, 0.05)', 'rgba(255, 255, 255, 0.02)']}
                   style={styles.entradaCardGradient}
                 >
-                  <BlurView intensity={15} tint="dark" style={styles.entradaCard}>
+                  <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.entradaCard}>
                     {/* Imagen con glass effect */}
                     <View style={styles.entradaImageContainer}>
                       <LinearGradient
@@ -292,9 +303,9 @@ export default function BilleteraScreen() {
                       </LinearGradient>
                       {entrada.estado === 'activo' && (
                         <View style={styles.statusBadge}>
-                          <BlurView intensity={20} tint="dark" style={styles.statusBadgeBlur}>
+                          <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.statusBadgeBlur}>
                             <Text style={styles.statusBadgeText}>ACTIVO</Text>
-                          </BlurView>
+                          </GlassView>
                         </View>
                       )}
                     </View>
@@ -306,7 +317,7 @@ export default function BilleteraScreen() {
                       <Text style={styles.entradaUbicacion} numberOfLines={1}>{entrada.ubicacion}</Text>
                       <Text style={styles.entradaPrecio}>{entrada.precio}</Text>
                     </View>
-                  </BlurView>
+                  </GlassView>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
@@ -314,32 +325,34 @@ export default function BilleteraScreen() {
         ) : (
           <View style={styles.cashlessContent}>
             {/* Coming Soon Overlay */}
-            <View style={styles.comingSoonOverlay}>
-              <BlurView intensity={20} tint="dark" style={styles.comingSoonBlur}>
-                <View style={styles.comingSoonContent}>
-                  <Ionicons name="time-outline" size={48} color="rgba(255, 255, 255, 0.8)" />
-                  <Text style={styles.comingSoonTitle}>Próximamente</Text>
-                  <View style={styles.benefitsList}>
-                    <View style={styles.benefitItem}>
-                      <Ionicons name="card-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
-                      <Text style={styles.benefitText}>Paga tickets y compras en eventos</Text>
-                    </View>
-                    <View style={styles.benefitItem}>
-                      <Ionicons name="people-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
-                      <Text style={styles.benefitText}>Transfiere dinero a otros usuarios</Text>
-                    </View>
-                    <View style={styles.benefitItem}>
-                      <Ionicons name="flash-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
-                      <Text style={styles.benefitText}>Recargas instantáneas</Text>
-                    </View>
-                    <View style={styles.benefitItem}>
-                      <Ionicons name="wallet-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
-                      <Text style={styles.benefitText}>Retiros súper fáciles</Text>
+            {showComingSoonOverlay && (
+              <View style={styles.comingSoonOverlay}>
+                <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.comingSoonBlur}>
+                  <View style={styles.comingSoonContent}>
+                    <Ionicons name="time-outline" size={48} color="rgba(255, 255, 255, 0.8)" />
+                    <Text style={styles.comingSoonTitle}>Próximamente</Text>
+                    <View style={styles.benefitsList}>
+                      <View style={styles.benefitItem}>
+                        <Ionicons name="card-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                        <Text style={styles.benefitText}>Paga tickets y compras en eventos</Text>
+                      </View>
+                      <View style={styles.benefitItem}>
+                        <Ionicons name="people-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                        <Text style={styles.benefitText}>Transfiere dinero a otros usuarios</Text>
+                      </View>
+                      <View style={styles.benefitItem}>
+                        <Ionicons name="flash-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                        <Text style={styles.benefitText}>Recargas instantáneas</Text>
+                      </View>
+                      <View style={styles.benefitItem}>
+                        <Ionicons name="wallet-outline" size={16} color="rgba(255, 255, 255, 0.8)" />
+                        <Text style={styles.benefitText}>Retiros súper fáciles</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              </BlurView>
-            </View>
+                </GlassView>
+              </View>
+            )}
             {/* Saldo Box Rediseñado */}
             <View style={styles.saldoCard}>
               {/* Badge de Puntos */}
@@ -365,7 +378,6 @@ export default function BilleteraScreen() {
                   style={styles.actionButton}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    console.log('Recargar pressed');
                   }}
                 >
                   <Ionicons name="add" size={18} color={theme.colors.background} />
@@ -376,7 +388,6 @@ export default function BilleteraScreen() {
                   style={styles.actionButton}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    console.log('Transferir pressed');
                   }}
                 >
                   <Ionicons name="swap-horizontal" size={18} color={theme.colors.background} />
@@ -405,7 +416,6 @@ export default function BilleteraScreen() {
                 style={styles.additionalActionBox}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  console.log('Conectar manilla pressed');
                 }}
               >
                 <View style={styles.additionalActionIcon}>
@@ -419,7 +429,6 @@ export default function BilleteraScreen() {
                 style={styles.additionalActionBox}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  console.log('Add to Apple Wallet');
                 }}
               >
                 <View style={styles.additionalActionIcon}>
@@ -476,9 +485,9 @@ export default function BilleteraScreen() {
         <View style={styles.qrModalContainer}>
           <Animated.View style={[styles.qrBackdrop, useAnimatedStyle(() => ({ opacity: backdropOpacity.value }))]}>
             <Animated.View style={[StyleSheet.absoluteFillObject, useAnimatedStyle(() => ({ opacity: blurRadius.value }))]}>
-              <BlurView
-                intensity={15}
-                tint="dark"
+              <GlassView
+                glassEffectStyle="regular"
+                tintColor="rgba(0,0,0,0.5)"
                 style={StyleSheet.absoluteFillObject}
               />
             </Animated.View>

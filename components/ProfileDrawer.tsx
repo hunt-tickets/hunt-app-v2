@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Typography } from '../constants/fonts';
 import { useTheme } from '../contexts/ThemeContext';
@@ -49,7 +49,6 @@ export default function ProfileDrawer({ isVisible, onClose }: ProfileDrawerProps
       const profile = await ApiService.getUserProfile(userToken);
       setProfileData(profile);
       setEditData(profile);
-      console.log('Profile loaded:', profile);
     } catch (error) {
       console.error('Error loading profile:', error);
       Alert.alert('Error', 'No se pudo cargar el perfil del usuario');
@@ -132,7 +131,7 @@ export default function ProfileDrawer({ isVisible, onClose }: ProfileDrawerProps
       <StatusBar style="light" />
       <View style={styles.modalContainer}>
         {/* Background Blur */}
-        <BlurView intensity={20} tint="dark" style={styles.backdrop}>
+        <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.backdrop}>
           <Pressable
             style={styles.backdropPress}
             onPress={() => {
@@ -140,11 +139,11 @@ export default function ProfileDrawer({ isVisible, onClose }: ProfileDrawerProps
               handleClose();
             }}
           />
-        </BlurView>
+        </GlassView>
 
         {/* Drawer */}
         <View style={[styles.drawer, { paddingBottom: insets.bottom + 20 }]}>
-          <BlurView intensity={80} tint="dark" style={styles.drawerBlur}>
+          <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.drawerBlur}>
             <View style={styles.drawerOverlay}>
 
               {/* Handle */}
@@ -241,12 +240,12 @@ export default function ProfileDrawer({ isVisible, onClose }: ProfileDrawerProps
                         style={styles.logoutButton}
                         onPress={handleLogout}
                       >
-                        <BlurView intensity={40} tint="dark" style={styles.logoutButtonBlur}>
+                        <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.logoutButtonBlur}>
                           <View style={styles.logoutButtonOverlay}>
                             <Ionicons name="log-out-outline" size={20} color="#FF3B30" />
                             <Text style={[styles.logoutText, Typography.body]}>Cerrar sesión</Text>
                           </View>
-                        </BlurView>
+                        </GlassView>
                       </Pressable>
                     </View>
                   </>
@@ -260,27 +259,27 @@ export default function ProfileDrawer({ isVisible, onClose }: ProfileDrawerProps
                     style={styles.floatingButton}
                     onPress={handleCancel}
                   >
-                    <BlurView intensity={60} tint="dark" style={styles.floatingButtonBlur}>
+                    <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.floatingButtonBlur}>
                       <View style={[styles.floatingButtonOverlay, styles.cancelButtonOverlay]}>
                         <Ionicons name="close" size={24} color="#FF3B30" />
                       </View>
-                    </BlurView>
+                    </GlassView>
                   </Pressable>
 
                   <Pressable
                     style={styles.floatingButton}
                     onPress={handleSave}
                   >
-                    <BlurView intensity={60} tint="dark" style={styles.floatingButtonBlur}>
+                    <GlassView glassEffectStyle="regular" tintColor="rgba(0,0,0,0.5)" style={styles.floatingButtonBlur}>
                       <View style={[styles.floatingButtonOverlay, styles.saveButtonOverlay]}>
                         <Ionicons name="checkmark" size={24} color="#34C759" />
                       </View>
-                    </BlurView>
+                    </GlassView>
                   </Pressable>
                 </View>
               )}
             </View>
-          </BlurView>
+          </GlassView>
         </View>
       </View>
     </Modal>

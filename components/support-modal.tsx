@@ -8,7 +8,7 @@ import {
   Dimensions,
   Linking,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -26,9 +26,10 @@ const { height } = Dimensions.get('window');
 interface SupportModalProps {
   visible: boolean;
   onClose: () => void;
+  showMinimal?: boolean;
 }
 
-export default function SupportModal({ visible, onClose }: SupportModalProps) {
+export default function SupportModal({ visible, onClose, showMinimal = false }: SupportModalProps) {
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(height);
   const backdropOpacity = useSharedValue(0);
@@ -134,17 +135,17 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
     opacity: modalOpacity.value,
   }));
 
-  const modalHeight = height * 0.60; // 55% of screen height - tamaño más razonable
+  const modalHeight = showMinimal ? height * 0.35 : height * 0.60; // Altura dinámica según el modo
 
   return (
     <Modal transparent visible={visible} statusBarTranslucent>
       <View style={styles.container}>
         <Animated.View style={[styles.backdrop, backdropStyle]}>
           <Animated.View style={[StyleSheet.absoluteFillObject, blurStyle]}>
-            <BlurView
-              intensity={15}
-              tint="dark"
+            <GlassView
               style={StyleSheet.absoluteFillObject}
+              tintColor="rgba(0,0,0,0.5)"
+              glassEffectStyle="regular"
             />
           </Animated.View>
           <TouchableOpacity
@@ -185,7 +186,8 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
           </View>
 
           {/* Additional Options */}
-          <View style={styles.additionalOptions}>
+          {!showMinimal && (
+            <View style={styles.additionalOptions}>
             {/* PQR Option */}
             <TouchableOpacity style={styles.additionalButton} onPress={handlePQR}>
               <View style={[styles.additionalIconContainer, styles.pqrIcon]}>
@@ -222,6 +224,7 @@ export default function SupportModal({ visible, onClose }: SupportModalProps) {
               <Ionicons name="chevron-forward" size={16} color="#999999" />
             </TouchableOpacity>
           </View>
+          )}
         </Animated.View>
       </View>
     </Modal>

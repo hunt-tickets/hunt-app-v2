@@ -7,7 +7,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -23,22 +23,16 @@ interface LiquidGlassCardProps {
 export default function LiquidGlassCard({ event, onPress, onShare }: LiquidGlassCardProps) {
 
   const handleCardPress = () => {
-    console.log('🟦 [LiquidGlassCard] Card pressed for event:', event.id);
-    console.log('🟦 [LiquidGlassCard] Event name:', event.name);
-    console.log('🟦 [LiquidGlassCard] About to call onPress function');
 
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      console.log('🟦 [LiquidGlassCard] Haptics triggered, calling onPress...');
       onPress();
-      console.log('🟦 [LiquidGlassCard] onPress called successfully');
     } catch (error) {
       console.error('🔴 [LiquidGlassCard] Error in handleCardPress:', error);
     }
   };
 
   const handleSharePress = (e: any) => {
-    console.log('Share button pressed, stopping propagation');
     // Prevent card press
     if (e && e.stopPropagation) {
       e.stopPropagation();
@@ -84,29 +78,29 @@ export default function LiquidGlassCard({ event, onPress, onShare }: LiquidGlass
           onPress={handleSharePress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <BlurView
-            intensity={40}
-            tint="dark"
+          <GlassView
             style={styles.actionButtonBlur}
+            tintColor="rgba(0,0,0,0.5)"
+            glassEffectStyle="regular"
           >
             <View style={styles.actionButtonOverlay}>
               <Ionicons name="share-outline" size={20} color="#ffffff" />
             </View>
-          </BlurView>
+          </GlassView>
         </Pressable>
 
         {/* Date Container with Liquid Glass */}
         <View style={styles.dateContainer} pointerEvents="none">
-          <BlurView
-            intensity={40}
-            tint="dark"
+          <GlassView
             style={styles.dateBlur}
+            tintColor="rgba(0,0,0,0.5)"
+            glassEffectStyle="regular"
           >
             <View style={styles.dateOverlay}>
               <Text style={styles.dateNumber}>{event['date.num']}</Text>
               <Text style={styles.dateMonth}>{event['date.month']}</Text>
             </View>
-          </BlurView>
+          </GlassView>
         </View>
       </View>
 

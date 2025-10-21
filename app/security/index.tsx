@@ -98,7 +98,6 @@ export default function SecurityScreen() {
                 text: 'Ir a Ajustes',
                 onPress: () => {
                   // This would open Settings app on a real device
-                  console.log('Opening settings...');
                 }
               }
             ]
@@ -217,7 +216,6 @@ export default function SecurityScreen() {
           subtitle: '3 dispositivos activos',
           icon: 'phone-portrait-outline',
           type: 'navigation',
-          action: () => console.log('Show active sessions'),
         },
       ],
     },

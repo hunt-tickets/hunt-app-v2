@@ -15,7 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -93,7 +93,6 @@ export default function ReportarBugsScreen() {
       // Simulate API call - replace with actual implementation
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      console.log('Report submitted:', form);
 
       Alert.alert(
         'Enviado',

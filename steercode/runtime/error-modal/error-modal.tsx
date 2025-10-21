@@ -103,7 +103,6 @@ export default function ErrorModal({
   }, [visible]);
 
   useEffect(() => {
-    if (data) console.log("LogBox Error Data:", JSON.stringify(data, null, 2));
   }, [data]);
 
   const title = "App Error";

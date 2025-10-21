@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function SecurityLayout() {
@@ -28,11 +28,11 @@ export default function SecurityLayout() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <BlurView intensity={60} style={styles.blurContainer}>
+            <GlassView glassEffectStyle="regular" style={styles.blurContainer}>
               <View style={[styles.buttonContent, { backgroundColor: 'rgba(255, 255, 255, 0.1)' }]}>
                 <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
               </View>
-            </BlurView>
+            </GlassView>
           </TouchableOpacity>
         ),
       }}

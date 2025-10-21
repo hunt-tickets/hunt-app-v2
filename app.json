@@ -1,6 +1,6 @@
 {
   "name": "steercode-project",
-  "slug": "steercode-project",
+  "slug": "hunt-tickets",
   "version": "1.0.0",
   "orientation": "portrait",
   "icon": "./assets/images/icon.png",
@@ -22,6 +22,8 @@
     },
     "edgeToEdgeEnabled": true,
     "permissions": [
+      "android.permission.USE_BIOMETRIC",
+      "android.permission.USE_FINGERPRINT",
       "android.permission.USE_BIOMETRIC",
       "android.permission.USE_FINGERPRINT"
     ],
@@ -54,5 +56,16 @@
   ],
   "experiments": {
     "typedRoutes": true
+  },
+  "extra": {
+    "router": {},
+    "eas": {
+      "projectId": "227c623e-c646-40c2-a398-6921d0cea7d0"
+    }
+  },
+  "owner": "hunt-tickets",
+  "runtimeVersion": "1.0.0",
+  "updates": {
+    "url": "https://u.expo.dev/227c623e-c646-40c2-a398-6921d0cea7d0"
   }
 }

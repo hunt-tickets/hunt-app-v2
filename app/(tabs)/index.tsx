@@ -16,7 +16,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -71,13 +71,11 @@ export default function HomeScreen() {
       const response = await ApiService.getMainEvents(userToken);
       setEvents(response.events);
       setGreeting(response.greeting);
-      console.log('Events loaded:', response.events.length);
     } catch (error) {
       console.error('Error loading events:', error);
 
       // Check if it's an authentication error and redirect to login
       if (error instanceof Error && error.message.includes('Authentication required')) {
-        console.log('Authentication error detected, redirecting to login...');
         router.replace('/auth/login');
         return;
       }
@@ -91,7 +89,6 @@ export default function HomeScreen() {
   const detectInitialLocation = async () => {
     try {
       setIsDetectingInitialLocation(true);
-      console.log('Detecting initial location...');
 
       const { status } = await Location.getForegroundPermissionsAsync();
       if (status === 'granted') {
@@ -108,12 +105,10 @@ export default function HomeScreen() {
         if (address.city || address.region) {
           const cityName = address.city || address.region || 'Ubicación detectada';
           setSelectedLocation(cityName);
-          console.log('Initial location detected:', cityName);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         }
       } else {
         // Request permissions for next time, but don't detect now
-        console.log('No location permissions, using default location');
       }
     } catch (error) {
       console.error('Error detecting initial location:', error);
@@ -126,7 +121,6 @@ export default function HomeScreen() {
     setRefreshing(true);
     try {
       await loadEvents();
-      console.log('Events refreshed');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
       console.error('Error refreshing events:', error);
@@ -157,7 +151,6 @@ export default function HomeScreen() {
         { text: 'Compartir', onPress: () => handleShare(event) },
         { text: 'Favorito', onPress: () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          console.log('Add to favorites');
         }},
         { text: 'Cancelar', style: 'cancel' },
       ]
@@ -165,35 +158,21 @@ export default function HomeScreen() {
   };
 
   const handleEventPress = (event: Event) => {
-    console.log('🟢 [Homepage] ==========================================');
-    console.log('🟢 [Homepage] handleEventPress called');
-    console.log('🟢 [Homepage] Event ID:', event.id);
-    console.log('🟢 [Homepage] Event name:', event.name);
-    console.log('🟢 [Homepage] Event object:', JSON.stringify(event, null, 2));
 
     try {
-      console.log('🟢 [Homepage] About to trigger haptics...');
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      console.log('🟢 [Homepage] Haptics triggered successfully');
 
       const path = `/event/${event.id}`;
-      console.log('🟢 [Homepage] Constructed path:', path);
 
-      console.log('🟢 [Homepage] About to call router.push with href object...');
-      console.log('🟢 [Homepage] Router object:', router);
 
       const directPath = `/event/${event.id}`;
-      console.log('🟢 [Homepage] Using direct path:', directPath);
       // Try direct string navigation instead of object
       router.push(directPath);
-      console.log('🟢 [Homepage] Direct router.push called');
       return; // Exit early to test this approach
 
       const navigationParams = { pathname: '/(tabs)/event/[id]' as const, params: { id: event.id } };
-      console.log('🟢 [Homepage] Navigation params:', JSON.stringify(navigationParams, null, 2));
 
       router.push(navigationParams);
-      console.log('🟢 [Homepage] router.push called successfully');
 
     } catch (error) {
       console.error('🔴 [Homepage] Navigation error:', error);
@@ -210,7 +189,6 @@ export default function HomeScreen() {
 
   const handleLocationSelect = (city: string) => {
     setSelectedLocation(city);
-    console.log('Location selected:', city);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     // Removed auto-close behavior from modal interaction as per update instructions
   };
@@ -253,9 +231,9 @@ export default function HomeScreen() {
               }}
               activeOpacity={0.8}
             >
-              <BlurView
-                intensity={60}
-                tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+              <GlassView
+                glassEffectStyle="regular"
+                tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                 style={StyleSheet.absoluteFillObject}
               />
               <View style={styles.glassButtonOverlay}>
@@ -276,9 +254,9 @@ export default function HomeScreen() {
               }}
               activeOpacity={0.8}
             >
-              <BlurView
-                intensity={60}
-                tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+              <GlassView
+                glassEffectStyle="regular"
+                tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                 style={StyleSheet.absoluteFillObject}
               />
               <View style={styles.glassButtonOverlay}>
@@ -321,55 +299,6 @@ export default function HomeScreen() {
           </>
         ) : events.length > 0 ? (
           <>
-            {/* DEBUG: Test button for navigation */}
-            <TouchableOpacity
-              style={{
-                backgroundColor: 'red',
-                padding: 20,
-                margin: 20,
-                borderRadius: 10,
-              }}
-              onPress={() => {
-                console.log('🔶 [DEBUG] Test button pressed');
-                try {
-                  console.log('🔶 [DEBUG] Testing navigation to test-event page');
-                  router.push('/test-event');
-                  console.log('🔶 [DEBUG] Test navigation called successfully');
-                } catch (error) {
-                  console.error('🔶 [DEBUG] Test navigation failed:', error);
-                }
-              }}
-            >
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                TEST NAVIGATION (to test-event)
-              </Text>
-            </TouchableOpacity>
-
-            {/* DEBUG: Test button for event navigation */}
-            <TouchableOpacity
-              style={{
-                backgroundColor: 'orange',
-                padding: 20,
-                margin: 20,
-                borderRadius: 10,
-              }}
-              onPress={() => {
-                console.log('🔶 [DEBUG] Event test button pressed');
-                try {
-                  console.log('🔶 [DEBUG] Attempting event navigation');
-                  const testId = 'test-123';
-                  router.push({ pathname: '/(tabs)/event/[id]', params: { id: testId } });
-                  console.log('🔶 [DEBUG] Event navigation called successfully');
-                } catch (error) {
-                  console.error('🔶 [DEBUG] Event test navigation failed:', error);
-                }
-              }}
-            >
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                TEST EVENT NAVIGATION (with test-123)
-              </Text>
-            </TouchableOpacity>
-
             {events.map((event) => (
               <LiquidGlassCard
                 key={event.id}

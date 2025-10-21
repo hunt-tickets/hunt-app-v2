@@ -8,7 +8,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { WebView } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -178,9 +178,9 @@ export default function ScannerScreen() {
           onPress={reload}
           disabled={loading}
         >
-          <BlurView
-            intensity={80}
-            tint="systemUltraThinMaterialDark"
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor="rgba(0,0,0,0.3)"
             style={StyleSheet.absoluteFillObject}
           />
           <Ionicons

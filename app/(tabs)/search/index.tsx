@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { FontFamily } from '../../../constants/fonts';
 
 const { width } = Dimensions.get('window');
@@ -179,7 +179,7 @@ export default function SearchScreen() {
       onPress={() => router.push(`/(tabs)/event/${item.id}`)}
     >
       <Image source={{ uri: item.image }} style={styles.gridImage} />
-      <BlurView intensity={20} style={styles.gridOverlay}>
+      <GlassView glassEffectStyle="regular" style={styles.gridOverlay}>
         <View style={styles.gridDateBadge}>
           <Text style={styles.gridDate}>{item.date}</Text>
           <Text style={styles.gridMonth}>{item.month}</Text>
@@ -195,7 +195,7 @@ export default function SearchScreen() {
             <Text style={styles.gridPrice}>{item.price}</Text>
           </View>
         </View>
-      </BlurView>
+      </GlassView>
     </TouchableOpacity>
   );
 
@@ -263,10 +263,10 @@ export default function SearchScreen() {
                       style={styles.featuredGradient}
                     >
                       <Image source={{ uri: category.image }} style={styles.featuredImage} />
-                      <BlurView intensity={40} style={styles.featuredOverlay}>
+                      <GlassView glassEffectStyle="regular" style={styles.featuredOverlay}>
                         <Text style={styles.featuredTitle}>{category.title}</Text>
                         <Text style={styles.featuredSubtitle}>{category.subtitle}</Text>
-                      </BlurView>
+                      </GlassView>
                     </LinearGradient>
                   </TouchableOpacity>
                 ))}

@@ -79,12 +79,10 @@ export default function AdministrarEventosScreen() {
   const handleCreateEvent = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     // Navigate to create event screen
-    console.log('Create new event');
   };
 
   const handleEventPress = (event: any) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log('Edit event:', event.title);
   };
 
   const tabs = [

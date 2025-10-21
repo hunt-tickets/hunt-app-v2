@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../../../contexts/ThemeContext';
 import { Typography } from '../../../constants/fonts';
@@ -181,9 +181,9 @@ export default function TransactionSearchScreen() {
         />
         <View style={styles.headerContent}>
           <TouchableOpacity style={styles.glassBackButton} onPress={handleGoBack}>
-            <BlurView
-              intensity={60}
-              tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+            <GlassView
+              glassEffectStyle="regular"
+              tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
               style={StyleSheet.absoluteFillObject}
             />
             <View style={styles.glassButtonOverlay}>
@@ -197,9 +197,9 @@ export default function TransactionSearchScreen() {
           </View>
 
           <TouchableOpacity style={styles.glassMenuButton}>
-            <BlurView
-              intensity={60}
-              tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+            <GlassView
+              glassEffectStyle="regular"
+              tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
               style={StyleSheet.absoluteFillObject}
             />
             <View style={styles.glassButtonOverlay}>
@@ -212,9 +212,9 @@ export default function TransactionSearchScreen() {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <BlurView
-            intensity={40}
-            tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
             style={StyleSheet.absoluteFillObject}
           />
           <View style={styles.searchContent}>
@@ -251,9 +251,9 @@ export default function TransactionSearchScreen() {
       >
         {error && (
           <View style={styles.errorCard}>
-            <BlurView
-              intensity={40}
-              tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+            <GlassView
+              glassEffectStyle="regular"
+              tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
               style={StyleSheet.absoluteFillObject}
             />
             <View style={styles.errorContent}>
@@ -292,9 +292,9 @@ export default function TransactionSearchScreen() {
                       // Aquí puedes agregar navegación a detalle de transacción
                     }}
                   >
-                    <BlurView
-                      intensity={40}
-                      tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+                    <GlassView
+                      glassEffectStyle="regular"
+                      tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
                       style={StyleSheet.absoluteFillObject}
                     />
                     <View style={styles.transactionContent}>

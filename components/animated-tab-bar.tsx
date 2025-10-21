@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import Animated, {
   useAnimatedStyle,
   interpolate,
@@ -37,15 +37,15 @@ export function AnimatedTabBar({ scrollY, children }: AnimatedTabBarProps) {
 
   return (
     <Animated.View style={[styles.container, containerAnimatedStyle]}>
-      <BlurView
-        intensity={100}
-        tint="dark"
+      <GlassView
         style={StyleSheet.absoluteFillObject}
+        tintColor="rgba(0,0,0,0.5)"
+        glassEffectStyle="regular"
       >
         <Animated.View
           style={[StyleSheet.absoluteFillObject, overlayAnimatedStyle]}
         />
-      </BlurView>
+      </GlassView>
       {children}
     </Animated.View>
   );

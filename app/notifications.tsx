@@ -111,7 +111,6 @@ export default function NotificationsScreen() {
             ]}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              console.log('Notification pressed:', notification.title);
             }}
           >
             <View style={styles.cardContent}>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glassmorphism Modal Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .demo-container {
+            text-align: center;
+            color: white;
+        }
+
+        .open-modal-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            display: none;
+            align-items: flex-end;
+            z-index: 1000;
+        }
+
+        .modal-container {
+            width: 100%;
+            max-height: 80vh;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-bottom: none;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-content {
+            padding: 24px;
+            color: white;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .field-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .input-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .text-input {
+            width: 100%;
+            height: 48px;
+            padding: 0 16px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 16px;
+        }
+
+        .text-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 12px;
+        }
+
+        .role-option {
+            flex: 1;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .role-option:hover,
+        .role-option.selected {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .cancel-button {
+            flex: 1;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+        }
+
+        .submit-button {
+            flex: 1;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            border: none;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .demo-note {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <h1>🎨 Glassmorphism Modal Demo</h1>
+        <p>Efecto glassmorphism implementado en el modal "Agregar Miembro"</p>
+        <br>
+        <button class="open-modal-btn" onclick="openModal()">Agregar Miembro</button>
+        <div class="demo-note">
+            ✨ Modal con glassmorphism limpio - sin bordes visibles<br>
+            📱 Optimizado para iOS/Android y Web
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal()">
+        <div class="modal-container" onclick="event.stopPropagation()">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">Agregar Miembro</div>
+                    <button class="modal-close" onclick="closeModal()">✕</button>
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">Email</label>
+                    <div class="input-container">
+                        <input type="email" class="text-input" placeholder="email@ejemplo.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="field-label">Rol</label>
+                    <div class="role-selector">
+                        <div class="role-option" onclick="selectRole(this, 'admin')">
+                            <div>👑</div>
+                            <div>Admin</div>
+                        </div>
+                        <div class="role-option selected" onclick="selectRole(this, 'seller')">
+                            <div>🏪</div>
+                            <div>Vendedor</div>
+                        </div>
+                        <div class="role-option" onclick="selectRole(this, 'scanner')">
+                            <div>📱</div>
+                            <div>Scanner</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="cancel-button" onclick="closeModal()">Cancelar</button>
+                    <button class="submit-button" onclick="submitMember()">Agregar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('modalBackdrop').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modalBackdrop').style.display = 'none';
+        }
+
+        function selectRole(element, role) {
+            document.querySelectorAll('.role-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function submitMember() {
+            alert('¡Miembro agregado exitosamente! 🎉');
+            closeModal();
+        }
+    </script>
+</body>
+</html>

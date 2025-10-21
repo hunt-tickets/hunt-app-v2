@@ -11,9 +11,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+// Rate limiting tracker
+let lastOTPRequest: { [email: string]: number } = {};
+
 // Auth helper functions
 export const authService = {
   async sendOTP(email: string) {
+    // Check rate limit (60 seconds per email)
+    const now = Date.now();
+    const lastRequest = lastOTPRequest[email];
+
+    if (lastRequest && (now - lastRequest) < 60000) {
+      const remainingSeconds = Math.ceil((60000 - (now - lastRequest)) / 1000);
+      throw new Error(`Por favor espera ${remainingSeconds} segundos antes de solicitar otro código.`);
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
@@ -27,13 +39,29 @@ export const authService = {
 
       if (error) {
         console.error('Supabase OTP Error:', error);
-        throw new Error(error.message);
+
+        // Handle specific Supabase rate limit error
+        if (error.message.includes('security purposes') || error.message.includes('seconds')) {
+          const match = error.message.match(/(\d+)\s*seconds?/);
+          const seconds = match ? match[1] : '60';
+          throw new Error(`Por favor espera ${seconds} segundos antes de solicitar otro código.`);
+        }
+
+        throw new Error('No se pudo enviar el código. Intenta de nuevo.');
       }
 
+      // Store timestamp of successful request
+      lastOTPRequest[email] = now;
       return { success: true, data };
     } catch (error: any) {
       console.error('Send OTP Error:', error);
-      throw new Error(error.message || 'Failed to send OTP');
+
+      // Re-throw our custom error messages
+      if (error.message.includes('Por favor espera')) {
+        throw error;
+      }
+
+      throw new Error('No se pudo enviar el código. Intenta de nuevo.');
     }
   },
 

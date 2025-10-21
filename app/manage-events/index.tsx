@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -95,7 +95,6 @@ export default function ManageEventsScreen() {
           componentStatus = 'draft';
         }
 
-        console.log(`Event: ${event.name}, Status from API: ${event.status}, Mapped to: ${componentStatus}`);
 
         return {
           id: event.id,
@@ -225,9 +224,9 @@ export default function ManageEventsScreen() {
 
           {/* Search Bar */}
           <View style={styles.searchContainer}>
-            <BlurView
-              intensity={40}
-              tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+            <GlassView
+              glassEffectStyle="regular"
+              tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
               style={StyleSheet.absoluteFillObject}
             />
             <View style={styles.searchInputContainer}>

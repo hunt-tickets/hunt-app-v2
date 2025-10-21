@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: true };
     } catch (error: any) {
       console.error('Send OTP error:', error);
-      return { success: false, error: error.message || 'Network error. Please try again.' };
+      return { success: false, error: error.message || 'No se pudo enviar el código. Intenta de nuevo.' };
     }
   };
 

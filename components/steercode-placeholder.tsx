@@ -10,9 +10,9 @@ export default function SteercodePlaceholder() {
         style={styles.bgImage}
         contentFit="cover"
       />
-      <BlurView
-        intensity={100}
-        tint="dark"
+      <GlassView
+        glassEffectStyle="regular"
+        tintColor="rgba(0,0,0,0.5)"
         style={styles.blur}
       />
       <View style={styles.content}>

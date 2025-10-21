@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../contexts/ThemeContext';
@@ -35,7 +35,6 @@ const EventCard = React.memo<EventCardProps>(({ event, onPress, getStatusColor, 
   const handleSharePress = (e: any) => {
     e.stopPropagation();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log('Share event', event.id);
   };
 
   return (
@@ -61,45 +60,45 @@ const EventCard = React.memo<EventCardProps>(({ event, onPress, getStatusColor, 
           style={styles.actionButton}
           onPress={handleSharePress}
         >
-          <BlurView
-            intensity={40}
-            tint="dark"
+          <GlassView
             style={styles.actionButtonBlur}
+            tintColor="rgba(0,0,0,0.5)"
+            glassEffectStyle="regular"
           >
             <View style={styles.actionButtonOverlay}>
               <Ionicons name="share-outline" size={16} color="#ffffff" />
             </View>
-          </BlurView>
+          </GlassView>
         </TouchableOpacity>
 
         {/* Date Container with Liquid Glass */}
         <View style={styles.dateContainer}>
-          <BlurView
-            intensity={40}
-            tint="dark"
+          <GlassView
             style={styles.dateBlur}
+            tintColor="rgba(0,0,0,0.5)"
+            glassEffectStyle="regular"
           >
             <View style={styles.dateOverlay}>
               <Text style={styles.eventMonth}>{event.month.toUpperCase()}</Text>
               <Text style={styles.eventDay}>{event.date}</Text>
             </View>
-          </BlurView>
+          </GlassView>
         </View>
       </View>
 
       {/* Status Badge - only show if status exists */}
       {event.status && (
         <View style={styles.statusBadge}>
-          <BlurView
-            intensity={50}
-            tint="dark"
+          <GlassView
             style={styles.statusBlur}
+            tintColor="rgba(0,0,0,0.5)"
+            glassEffectStyle="regular"
           >
             <View style={[styles.statusDot, { backgroundColor: getStatusColor(event.status) }]} />
             <Text style={[styles.statusText, { color: getStatusColor(event.status) }]}>
               {getStatusLabel(event.status)}
             </Text>
-          </BlurView>
+          </GlassView>
         </View>
       )}
 

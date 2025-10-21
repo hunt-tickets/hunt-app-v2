@@ -18,6 +18,8 @@ import Animated, {
   withSpring,
   withTiming,
   runOnJS,
+  interpolate,
+  Extrapolate,
 } from 'react-native-reanimated';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { StatusBar } from 'expo-status-bar';
@@ -25,7 +27,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -53,17 +55,20 @@ export default function MisPerfilesScreen() {
   const { session } = useAuth();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
-  const [selectedFilter, setSelectedFilter] = useState('venues');
+  const [selectedFilter, setSelectedFilter] = useState('productores');
   const [selectedFilterIndex, setSelectedFilterIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProfiles, setFilteredProfiles] = useState<UserProfile[]>([]);
   const [producers, setProducers] = useState<Producer[]>([]);
+  const [filteredProducers, setFilteredProducers] = useState<Producer[]>([]);
   const [loadingProducers, setLoadingProducers] = useState(false);
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
   const [loadingVenues, setLoadingVenues] = useState(false);
   const [artists, setArtists] = useState<Artist[]>([]);
+  const [filteredArtists, setFilteredArtists] = useState<Artist[]>([]);
   const [loadingArtists, setLoadingArtists] = useState(false);
   const [showNewProducerModal, setShowNewProducerModal] = useState(false);
   const [showNewVenueModal, setShowNewVenueModal] = useState(false);
@@ -92,6 +97,11 @@ export default function MisPerfilesScreen() {
   const backdropOpacityVenue = useSharedValue(0);
   const modalOpacityVenue = useSharedValue(0);
   const blurRadiusVenue = useSharedValue(0);
+
+  // Search animation values
+  const searchTransition = useSharedValue(0);
+  const tabsOpacity = useSharedValue(1);
+  const createButtonOpacity = useSharedValue(1);
 
   // Sample data - replace with actual API call
   const mockProfiles: UserProfile[] = [
@@ -140,9 +150,63 @@ export default function MisPerfilesScreen() {
     loadArtists();
   }, []);
 
+  // Listen to native search parameter
+  useEffect(() => {
+    if (params.search !== undefined) {
+      setSearchQuery(params.search as string || '');
+    }
+  }, [params.search]);
+
+  // Check if search is focused (header hidden)
+  const isSearchFocused = params.searchFocused === 'true';
+
+  // Animate search transitions - synchronized with iOS native header animation
+  useEffect(() => {
+    if (isSearchFocused) {
+      // Search is focused - animate header hide with iOS-like spring
+      searchTransition.value = withSpring(1, {
+        damping: 50,
+        stiffness: 400,
+        mass: 1,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
+      });
+    } else {
+      // Search is not focused - animate header show with iOS-like spring
+      searchTransition.value = withSpring(0, {
+        damping: 50,
+        stiffness: 400,
+        mass: 1,
+        restDisplacementThreshold: 0.01,
+        restSpeedThreshold: 0.01,
+      });
+    }
+  }, [isSearchFocused]);
+
+  // Animate tabs and button based on search content - faster, more responsive
+  useEffect(() => {
+    if (searchQuery.trim().length > 0) {
+      // Hide tabs and button when showing results - fast fade out
+      tabsOpacity.value = withTiming(0, { duration: 150 });
+      createButtonOpacity.value = withTiming(0, { duration: 150 });
+    } else {
+      // Show tabs and button when no search results - spring back in
+      tabsOpacity.value = withSpring(1, {
+        damping: 40,
+        stiffness: 300,
+        mass: 0.8,
+      });
+      createButtonOpacity.value = withSpring(1, {
+        damping: 40,
+        stiffness: 300,
+        mass: 0.8,
+      });
+    }
+  }, [searchQuery]);
+
   useEffect(() => {
     filterProfiles();
-  }, [profiles, searchQuery, selectedFilter]);
+  }, [profiles, searchQuery, selectedFilter, venues, producers, artists]);
 
   const loadProfiles = async () => {
     try {
@@ -150,6 +214,7 @@ export default function MisPerfilesScreen() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       setProfiles(mockProfiles);
+      setFilteredProfiles(mockProfiles);
     } catch (error) {
       console.error('Error loading profiles:', error);
       Alert.alert('Error', 'No se pudieron cargar los perfiles');
@@ -166,11 +231,9 @@ export default function MisPerfilesScreen() {
 
     try {
       setLoadingProducers(true);
-      console.log('🟡 [Producers] Loading producers from API...');
       const producersData = await ApiService.getUserProducers(session.accessToken);
-      console.log('🟢 [Producers] Successfully loaded', producersData.length, 'producers');
-      console.log('🟢 [Producers] Data:', producersData);
       setProducers(producersData);
+      setFilteredProducers(producersData);
     } catch (error) {
       console.error('🔴 [Producers] Error loading producers:', error);
       Alert.alert('Error', 'No se pudieron cargar los productores');
@@ -187,11 +250,9 @@ export default function MisPerfilesScreen() {
 
     try {
       setLoadingVenues(true);
-      console.log('🟡 [Venues] Loading venues from API...');
       const venuesData = await ApiService.getVenues(session.accessToken);
-      console.log('🟢 [Venues] Successfully loaded', venuesData.length, 'venues');
-      console.log('🟢 [Venues] Data:', venuesData);
       setVenues(venuesData);
+      setFilteredVenues(venuesData);
     } catch (error) {
       console.error('🔴 [Venues] Error loading venues:', error);
       Alert.alert('Error', 'No se pudieron cargar los venues');
@@ -208,11 +269,9 @@ export default function MisPerfilesScreen() {
 
     try {
       setLoadingArtists(true);
-      console.log('🟡 [Artists] Loading artists from API...');
       const artistsData = await ApiService.getArtists(session.accessToken);
-      console.log('🟢 [Artists] Successfully loaded', artistsData.length, 'artists');
-      console.log('🟢 [Artists] Data:', artistsData);
       setArtists(artistsData);
+      setFilteredArtists(artistsData);
     } catch (error) {
       console.error('🔴 [Artists] Error loading artists:', error);
       Alert.alert('Error', 'No se pudieron cargar los artistas');
@@ -222,26 +281,41 @@ export default function MisPerfilesScreen() {
   };
 
   const filterProfiles = () => {
-    // Don't filter for venues, productores and artistas as they have their own data sources
-    if (selectedFilter === 'venues' || selectedFilter === 'productores' || selectedFilter === 'artistas') {
-      setFilteredProfiles([]);
-      return;
-    }
-
-    let filtered = profiles;
-
-    // Filter by search query
+    // Filter venues
+    let filteredVenuesData = venues;
     if (searchQuery) {
-      filtered = filtered.filter(profile =>
+      filteredVenuesData = venues.filter(venue =>
+        venue.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    setFilteredVenues(filteredVenuesData);
+
+    // Filter producers
+    let filteredProducersData = producers;
+    if (searchQuery) {
+      filteredProducersData = producers.filter(producer =>
+        producer.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    setFilteredProducers(filteredProducersData);
+
+    // Filter artists
+    let filteredArtistsData = artists;
+    if (searchQuery) {
+      filteredArtistsData = artists.filter(artist =>
+        artist.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    setFilteredArtists(filteredArtistsData);
+
+    // Filter regular profiles
+    let filtered = profiles;
+    if (searchQuery) {
+      filtered = profiles.filter(profile =>
         profile.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         profile.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
-    // Filter by profile type/category
-    // For now, keep all profiles since we don't have category data
-    // In the future, filter by profile.category === selectedFilter
-
     setFilteredProfiles(filtered);
   };
 
@@ -373,7 +447,6 @@ export default function MisPerfilesScreen() {
     }
 
     // Here you would typically send the data to your API
-    console.log('Creating producer:', newProducerForm);
 
     // Reset form and close modal
     setNewProducerForm({
@@ -408,7 +481,6 @@ export default function MisPerfilesScreen() {
     }
 
     // Here you would typically send the data to your API
-    console.log('Creating venue:', newVenueForm);
 
     // Reset form and close modal
     setNewVenueForm({
@@ -436,69 +508,208 @@ export default function MisPerfilesScreen() {
 
   const styles = createStyles(theme, insets);
 
+  // Animated styles for smooth transitions
+  const animatedScrollViewStyle = useAnimatedStyle(() => {
+    const paddingTop = interpolate(
+      searchTransition.value,
+      [0, 1],
+      [insets.top + 80, insets.top + 20],
+      Extrapolate.CLAMP
+    );
+
+    return {
+      paddingTop,
+    };
+  });
+
+  const animatedTabsStyle = useAnimatedStyle(() => ({
+    opacity: tabsOpacity.value,
+    transform: [
+      {
+        translateY: interpolate(
+          tabsOpacity.value,
+          [0, 1],
+          [-20, 0],
+          Extrapolate.CLAMP
+        ),
+      },
+    ],
+  }));
+
+  const animatedCreateButtonStyle = useAnimatedStyle(() => ({
+    opacity: createButtonOpacity.value,
+    transform: [
+      {
+        translateY: interpolate(
+          createButtonOpacity.value,
+          [0, 1],
+          [-20, 0],
+          Extrapolate.CLAMP
+        ),
+      },
+    ],
+  }));
+
   // Render profiles list based on selected filter
   const renderProfilesList = () => {
-    if (selectedFilter === 'venues') {
-      // Venues Section using real API data
-      if (loadingVenues) {
-        return (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#ffffff" />
-            <Text style={styles.loadingText}>Cargando venues...</Text>
+    // If there's a search query, show combined results from all types
+    if (searchQuery.trim().length > 0) {
+      const combinedResults = [];
+
+      // Add producers results first
+      if (filteredProducers.length > 0) {
+        combinedResults.push(
+          <View key="producers-section" style={styles.searchSection}>
+            <Text style={styles.searchSectionTitle}>Productores ({filteredProducers.length})</Text>
+            {filteredProducers.map((producer) => (
+              <TouchableOpacity
+                key={`producer-${producer.id}`}
+                style={styles.profileCard}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push(`/mis-perfiles/${producer.id}`);
+                }}
+                activeOpacity={0.8}
+              >
+                <GlassView
+                  glassEffectStyle="regular"
+                  tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.productorCardContent}>
+                  <View style={styles.productorRow}>
+                    <View style={styles.productorAvatarContainer}>
+                      {producer.logo ? (
+                        <Image
+                          source={{ uri: producer.logo }}
+                          style={styles.productorAvatar}
+                          onError={() => {
+                          }}
+                        />
+                      ) : (
+                        <View style={[styles.productorAvatar, styles.productorAvatarFallback]}>
+                          <Ionicons name="business" size={28} color="rgba(255, 255, 255, 0.6)" />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.productorName}>{producer.name}</Text>
+                    <Ionicons name="chevron-forward" size={24} color="rgba(255, 255, 255, 0.4)" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         );
       }
 
-      if (venues.length === 0) {
+      // Add venues results second
+      if (filteredVenues.length > 0) {
+        combinedResults.push(
+          <View key="venues-section" style={styles.searchSection}>
+            <Text style={styles.searchSectionTitle}>Venues ({filteredVenues.length})</Text>
+            {filteredVenues.map((venue) => (
+              <TouchableOpacity
+                key={`venue-${venue.id}`}
+                style={styles.profileCard}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push(`/venue/${venue.id}`);
+                }}
+                activeOpacity={0.8}
+              >
+                <GlassView
+                  glassEffectStyle="regular"
+                  tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.venueCardContent}>
+                  <View style={styles.venueRow}>
+                    <View style={styles.productorAvatarContainer}>
+                      {venue.logo ? (
+                        <Image
+                          source={{ uri: venue.logo }}
+                          style={styles.venueAvatar}
+                          onError={() => {
+                          }}
+                        />
+                      ) : (
+                        <View style={[styles.venueAvatar, styles.productorAvatarFallback]}>
+                          <Ionicons name="business" size={28} color="rgba(255, 255, 255, 0.6)" />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.venueName}>{venue.name}</Text>
+                    <Ionicons name="chevron-forward" size={24} color="rgba(255, 255, 255, 0.4)" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        );
+      }
+
+
+      // Add artists results
+      if (filteredArtists.length > 0) {
+        combinedResults.push(
+          <View key="artists-section" style={styles.searchSection}>
+            <Text style={styles.searchSectionTitle}>Artistas ({filteredArtists.length})</Text>
+            {filteredArtists.map((artist) => (
+              <TouchableOpacity
+                key={`artist-${artist.id}`}
+                style={styles.profileCard}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push(`/artist/${artist.id}`);
+                }}
+                activeOpacity={0.8}
+              >
+                <GlassView
+                  glassEffectStyle="regular"
+                  tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.artistaCardContent}>
+                  <View style={styles.artistaRow}>
+                    <View style={styles.productorAvatarContainer}>
+                      {artist.logo ? (
+                        <Image
+                          source={{ uri: artist.logo }}
+                          style={styles.artistaAvatar}
+                          onError={() => {
+                          }}
+                        />
+                      ) : (
+                        <View style={[styles.artistaAvatar, styles.productorAvatarFallback]}>
+                          <Ionicons name="musical-note" size={28} color="rgba(255, 255, 255, 0.6)" />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.artistaName}>{artist.name}</Text>
+                    <Ionicons name="chevron-forward" size={24} color="rgba(255, 255, 255, 0.4)" />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        );
+      }
+
+      // Show no results message if no matches found
+      if (combinedResults.length === 0) {
         return (
           <View style={styles.emptyContainer}>
-            <Ionicons name="business-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
-            <Text style={styles.emptyTitle}>No hay venues</Text>
-            <Text style={styles.emptySubtitle}>Crea tu primer venue</Text>
+            <Ionicons name="search-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
+            <Text style={styles.emptyTitle}>No se encontraron resultados</Text>
+            <Text style={styles.emptySubtitle}>Intenta con otro término de búsqueda</Text>
           </View>
         );
       }
 
-      return venues.map((venue) => (
-        <TouchableOpacity
-          key={venue.id}
-          style={styles.profileCard}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push(`/mis-perfiles/${venue.id}`);
-          }}
-          activeOpacity={0.8}
-        >
-          <BlurView
-            intensity={40}
-            tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
-            style={StyleSheet.absoluteFillObject}
-          />
-          <View style={styles.venueCardContent}>
-            <View style={styles.venueRow}>
-              <View style={styles.productorAvatarContainer}>
-                {venue.logo ? (
-                  <Image
-                    source={{ uri: venue.logo }}
-                    style={styles.venueAvatar}
-                    onError={() => {
-                      console.log('Failed to load venue logo:', venue.logo);
-                    }}
-                  />
-                ) : (
-                  <View style={[styles.venueAvatar, styles.productorAvatarFallback]}>
-                    <Ionicons name="business" size={28} color="rgba(255, 255, 255, 0.6)" />
-                  </View>
-                )}
-              </View>
-              <Text style={styles.venueName}>{venue.name}</Text>
-              <Ionicons name="chevron-forward" size={24} color="rgba(255, 255, 255, 0.4)" />
-            </View>
-          </View>
-        </TouchableOpacity>
-      ));
+      return <>{combinedResults}</>;
     }
 
+    // Original logic when no search query
     if (selectedFilter === 'productores') {
       // Producers Section using real API data
       if (loadingProducers) {
@@ -520,7 +731,7 @@ export default function MisPerfilesScreen() {
         );
       }
 
-      return producers.map((producer) => (
+      return filteredProducers.map((producer) => (
         <TouchableOpacity
           key={producer.id}
           style={styles.profileCard}
@@ -530,9 +741,9 @@ export default function MisPerfilesScreen() {
           }}
           activeOpacity={0.8}
         >
-          <BlurView
-            intensity={40}
-            tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
             style={StyleSheet.absoluteFillObject}
           />
           <View style={styles.productorCardContent}>
@@ -543,7 +754,6 @@ export default function MisPerfilesScreen() {
                     source={{ uri: producer.logo }}
                     style={styles.productorAvatar}
                     onError={() => {
-                      console.log('Failed to load producer logo:', producer.logo);
                     }}
                   />
                 ) : (
@@ -553,6 +763,66 @@ export default function MisPerfilesScreen() {
                 )}
               </View>
               <Text style={styles.productorName}>{producer.name}</Text>
+              <Ionicons name="chevron-forward" size={24} color="rgba(255, 255, 255, 0.4)" />
+            </View>
+          </View>
+        </TouchableOpacity>
+      ));
+    }
+
+    if (selectedFilter === 'venues') {
+      // Venues Section using real API data
+      if (loadingVenues) {
+        return (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#ffffff" />
+            <Text style={styles.loadingText}>Cargando venues...</Text>
+          </View>
+        );
+      }
+
+      if (venues.length === 0) {
+        return (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="business-outline" size={64} color="rgba(255, 255, 255, 0.3)" />
+            <Text style={styles.emptyTitle}>No hay venues</Text>
+            <Text style={styles.emptySubtitle}>Crea tu primer venue</Text>
+          </View>
+        );
+      }
+
+      return filteredVenues.map((venue) => (
+        <TouchableOpacity
+          key={venue.id}
+          style={styles.profileCard}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push(`/venue/${venue.id}`);
+          }}
+          activeOpacity={0.8}
+        >
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={styles.venueCardContent}>
+            <View style={styles.venueRow}>
+              <View style={styles.productorAvatarContainer}>
+                {venue.logo ? (
+                  <Image
+                    source={{ uri: venue.logo }}
+                    style={styles.venueAvatar}
+                    onError={() => {
+                    }}
+                  />
+                ) : (
+                  <View style={[styles.venueAvatar, styles.productorAvatarFallback]}>
+                    <Ionicons name="business" size={28} color="rgba(255, 255, 255, 0.6)" />
+                  </View>
+                )}
+              </View>
+              <Text style={styles.venueName}>{venue.name}</Text>
               <Ionicons name="chevron-forward" size={24} color="rgba(255, 255, 255, 0.4)" />
             </View>
           </View>
@@ -581,19 +851,19 @@ export default function MisPerfilesScreen() {
         );
       }
 
-      return artists.map((artist) => (
+      return filteredArtists.map((artist) => (
         <TouchableOpacity
           key={artist.id}
           style={styles.profileCard}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push(`/mis-perfiles/${artist.id}`);
+            router.push(`/artist/${artist.id}`);
           }}
           activeOpacity={0.8}
         >
-          <BlurView
-            intensity={40}
-            tint={theme.isDark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor={theme.isDark ? "rgba(0,0,0,0.3)" : "rgba(255,255,255,0.3)"}
             style={StyleSheet.absoluteFillObject}
           />
           <View style={styles.artistaCardContent}>
@@ -604,7 +874,6 @@ export default function MisPerfilesScreen() {
                     source={{ uri: artist.logo }}
                     style={styles.artistaAvatar}
                     onError={() => {
-                      console.log('Failed to load artist logo:', artist.logo);
                     }}
                   />
                 ) : (
@@ -638,53 +907,60 @@ export default function MisPerfilesScreen() {
         style={StyleSheet.absoluteFillObject}
       />
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
+      <Animated.ScrollView
+        style={[styles.scrollView, animatedScrollViewStyle]}
+        contentContainerStyle={[styles.contentContainer, searchQuery.trim().length > 0 && styles.contentContainerSearch]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Filter Controls */}
-        <View style={styles.filterContainer}>
-          <SegmentedControl
-            values={['Venues', 'Productores', 'Artistas']}
-            selectedIndex={selectedFilterIndex}
-            onChange={(event) => {
-              const index = event.nativeEvent.selectedSegmentIndex;
-              setSelectedFilterIndex(index);
-              const filters = ['venues', 'productores', 'artistas'];
-              setSelectedFilter(filters[index]);
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }}
-            style={styles.segmentedControl}
-          />
-        </View>
+        {/* Filter Controls - Hide when searching */}
+        {searchQuery.trim().length === 0 && (
+          <Animated.View style={[styles.filterContainer, animatedTabsStyle]}>
+            <SegmentedControl
+              values={['Productores', 'Venues', 'Artistas']}
+              selectedIndex={selectedFilterIndex}
+              onChange={(event) => {
+                const index = event.nativeEvent.selectedSegmentIndex;
+                setSelectedFilterIndex(index);
+                const filters = ['productores', 'venues', 'artistas'];
+                setSelectedFilter(filters[index]);
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }}
+              style={styles.segmentedControl}
+            />
+          </Animated.View>
+        )}
 
-        {/* Create Profile Button */}
-        <TouchableOpacity style={styles.createButton} onPress={handleCreateProfile}>
-          <View style={styles.createButtonContent}>
-            <Ionicons name="add" size={18} color="#000000" />
-            <Text style={styles.createButtonText}>
-              {selectedFilter === 'venues' ? 'Nuevo Venue' :
-               selectedFilter === 'productores' ? 'Nuevo Productor' :
-               'Nuevo Artista'}
-            </Text>
-          </View>
-        </TouchableOpacity>
+
+        {/* Create Profile Button - Hide when searching */}
+        {searchQuery.trim().length === 0 && (
+          <Animated.View style={animatedCreateButtonStyle}>
+            <TouchableOpacity style={styles.createButton} onPress={handleCreateProfile}>
+            <View style={styles.createButtonContent}>
+              <Ionicons name="add" size={18} color="#000000" />
+              <Text style={styles.createButtonText}>
+                {selectedFilter === 'productores' ? 'Nuevo Productor' :
+                 selectedFilter === 'venues' ? 'Nuevo Venue' :
+                 'Nuevo Artista'}
+              </Text>
+            </View>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
 
         {/* Profiles List */}
         <View style={styles.profilesList}>
           {renderProfilesList()}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* New Producer Modal - Slider Style */}
       <Modal transparent visible={showNewProducerModal} statusBarTranslucent>
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalBackdrop, backdropAnimatedStyleProducer]}>
             <Animated.View style={[StyleSheet.absoluteFillObject, blurAnimatedStyleProducer]}>
-              <BlurView
-                intensity={15}
-                tint="dark"
+              <GlassView
+                glassEffectStyle="regular"
+                tintColor="rgba(0,0,0,0.5)"
                 style={StyleSheet.absoluteFillObject}
               />
             </Animated.View>
@@ -800,9 +1076,9 @@ export default function MisPerfilesScreen() {
         <View style={styles.modalContainer}>
           <Animated.View style={[styles.modalBackdrop, backdropAnimatedStyleVenue]}>
             <Animated.View style={[StyleSheet.absoluteFillObject, blurAnimatedStyleVenue]}>
-              <BlurView
-                intensity={15}
-                tint="dark"
+              <GlassView
+                glassEffectStyle="regular"
+                tintColor="rgba(0,0,0,0.5)"
                 style={StyleSheet.absoluteFillObject}
               />
             </Animated.View>
@@ -927,8 +1203,14 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
     flex: 1,
     paddingTop: insets.top + 80,
   },
+  scrollViewSearch: {
+    paddingTop: insets.top + 20, // Reduce padding when search is active
+  },
   contentContainer: {
     paddingBottom: insets.bottom + 100,
+  },
+  contentContainerSearch: {
+    paddingTop: 20, // Add some top padding for search results
   },
   filterContainer: {
     paddingHorizontal: 20,
@@ -1271,5 +1553,18 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
   modalCreateButtonText: {
     ...Typography.bodyMedium,
     color: '#000000',
+  },
+
+
+  // Search Results Styles
+  searchSection: {
+    marginBottom: 24,
+  },
+  searchSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff',
+    marginLeft: 20,
+    marginBottom: 12,
   },
 });

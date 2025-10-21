@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">steercode-project</string>
+  <string name="app_name">steercode-project</string>
+  <string name="expo_runtime_version">1.0.0</string>
 </resources>

@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,9 +25,6 @@ export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
 
-  console.log('🔵 [EventDetailScreen] ==========================================');
-  console.log('🔵 [EventDetailScreen] Component mounted successfully!');
-  console.log('🔵 [EventDetailScreen] Event ID:', id);
 
   // Mock event data - replace with actual API call
   const eventData = {
@@ -48,11 +45,9 @@ export default function EventDetailScreen() {
   };
 
   useEffect(() => {
-    console.log('🔵 [EventDetailScreen] useEffect triggered');
     // Simulate loading
     setTimeout(() => {
       setLoading(false);
-      console.log('🔵 [EventDetailScreen] Loading complete');
     }, 500);
   }, [id]);
 
@@ -74,7 +69,6 @@ export default function EventDetailScreen() {
   };
 
   if (loading) {
-    console.log('🔵 [EventDetailScreen] Rendering loading state');
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <StatusBar style="light" />
@@ -83,7 +77,6 @@ export default function EventDetailScreen() {
     );
   }
 
-  console.log('🔵 [EventDetailScreen] Rendering full event detail page');
 
   return (
     <View style={styles.container}>
@@ -138,9 +131,9 @@ export default function EventDetailScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Glass Card Section */}
         <View style={styles.glassCard}>
-          <BlurView
-            intensity={40}
-            tint="systemThinMaterialDark"
+          <GlassView
+            glassEffectStyle="regular"
+            tintColor="rgba(0,0,0,0.3)"
             style={StyleSheet.absoluteFillObject}
           />
           <View style={styles.glassCardContent}>

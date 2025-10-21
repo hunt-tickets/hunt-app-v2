@@ -27,12 +27,19 @@ export function useScrollContext() {
 
 export default function TabLayout() {
   const scrollAnimation = useScrollAnimation();
-  const [useNativeTabs, setUseNativeTabs] = useState(Platform.OS === 'ios'); // Enable on iOS
+  const useNativeTabs = Platform.OS === 'ios'; // Use native tabs on iOS
   const segments = useSegments();
   const router = useRouter();
 
-  // Native Tabs Implementation (iOS 26 Liquid Glass)
-  if (useNativeTabs && Platform.OS === 'ios') {
+  // Tab configuration data
+  const tabConfig = [
+    { name: 'index', sfIcon: 'square.stack', customIcon: <HomeIcon />, label: 'Inicio' },
+    { name: 'billetera', sfIcon: 'creditcard', customIcon: <TicketIcon />, label: 'Billetera' },
+    { name: 'ajustes', sfIcon: 'slider.horizontal.3', customIcon: <SettingsIcon />, label: 'Ajustes' },
+  ];
+
+  // Render Native Tabs (iOS)
+  if (useNativeTabs) {
     return (
       <ScrollContext.Provider value={scrollAnimation}>
         <View style={{ flex: 1 }}>
@@ -46,28 +53,17 @@ export default function TabLayout() {
               light: '#000000'
             })}
           >
-            <NativeTabs.Trigger
-              name="index"
-              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-            >
-              <Icon sf="square.stack" />
-            </NativeTabs.Trigger>
+            {tabConfig.map((tab) => (
+              <NativeTabs.Trigger
+                key={tab.name}
+                name={tab.name}
+                onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+              >
+                <Icon sf={tab.sfIcon} />
+              </NativeTabs.Trigger>
+            ))}
 
-            <NativeTabs.Trigger
-              name="billetera"
-              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-            >
-              <Icon sf="creditcard" />
-            </NativeTabs.Trigger>
-
-            <NativeTabs.Trigger
-              name="ajustes"
-              onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
-            >
-              <Icon sf="slider.horizontal.3" />
-            </NativeTabs.Trigger>
-
-            {/* Native Search Tab - Uses Stack with headerSearchBarOptions */}
+            {/* Native Search Tab */}
             <NativeTabs.Trigger
               name="search"
               role="search"
@@ -77,7 +73,6 @@ export default function TabLayout() {
               <Icon sf="magnifyingglass" />
             </NativeTabs.Trigger>
           </NativeTabs>
-
         </View>
       </ScrollContext.Provider>
     );
@@ -167,24 +162,15 @@ export default function TabLayout() {
         {segments[1] !== 'administrar-eventos' && (
           <AnimatedTabBar scrollY={scrollAnimation.scrollY}>
             <View style={styles.customTabBar}>
-              <TabBarButton
-                name="index"
-                iconFocused={<HomeIcon />}
-                iconUnfocused={<HomeIcon />}
-                label="Inicio"
-              />
-              <TabBarButton
-                name="billetera"
-                iconFocused={<TicketIcon />}
-                iconUnfocused={<TicketIcon />}
-                label="Billetera"
-              />
-              <TabBarButton
-                name="ajustes"
-                iconFocused={<SettingsIcon />}
-                iconUnfocused={<SettingsIcon />}
-                label="Ajustes"
-              />
+              {tabConfig.map((tab) => (
+                <TabBarButton
+                  key={tab.name}
+                  name={tab.name}
+                  iconFocused={tab.customIcon}
+                  iconUnfocused={tab.customIcon}
+                  label={tab.label}
+                />
+              ))}
             </View>
           </AnimatedTabBar>
         )}

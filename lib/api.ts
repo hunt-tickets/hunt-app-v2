@@ -487,6 +487,57 @@ export class ApiService {
     }
   }
 
+  // Get all sales history with pagination
+  static async getAllMySales(
+    userToken: string,
+    pageNumber: number = 1,
+    pageSize: number = 20
+  ): Promise<SalesHistoryResponse> {
+    try {
+      console.log('🔍 getAllMySales called with:', {
+        pageNumber,
+        pageSize,
+        hasToken: !!userToken
+      });
+
+      const response = await fetch(`${API_REST_URL}/rpc/get_all_my_sales`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${userToken}`
+        },
+        body: JSON.stringify({
+          page_number: pageNumber,
+          page_size: pageSize
+        })
+      });
+
+      console.log('📥 Get All Sales Response:', {
+        status: response.status,
+        statusText: response.statusText
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Get All Sales Error:', errorText);
+        throw new Error(`Failed to get sales history: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Sales history fetched successfully:', {
+        totalRecords: data.pagination?.total_records,
+        currentPage: data.pagination?.current_page,
+        recordsCount: data.records?.length
+      });
+
+      return data;
+    } catch (error) {
+      console.error('💥 Error fetching sales history:', error);
+      throw error;
+    }
+  }
+
   // Future API endpoints can be added here
   static async getEventDetails(eventId: string, userToken?: string) {
     // This can be implemented when the endpoint is available
@@ -605,6 +656,34 @@ export interface PromoterEventsResponse {
   pagination?: PaginationInfo;
   past_events: PromoterEvent[];
   active_events: PromoterEvent[];
+}
+
+// Sales History Types
+export interface SaleRecord {
+  order_id: string;
+  total: number;
+  payment: string;
+  user_name: string;
+  user_email: string;
+  ticket_name: string;
+  quantity: string;
+  transaction_id: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SalesPagination {
+  current_page: number;
+  page_size: number;
+  total_records: number;
+  total_pages: number;
+}
+
+export interface SalesHistoryResponse {
+  code: number;
+  msg: string;
+  pagination: SalesPagination;
+  records: SaleRecord[];
 }
 
 export interface Venue {

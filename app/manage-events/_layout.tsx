@@ -3,16 +3,16 @@ import { Platform, TouchableOpacity, Alert, View, Modal, Text, Pressable, StyleS
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import { useState } from 'react';
 
 const ContextMenu = ({ visible, onClose, onExport }: { visible: boolean; onClose: () => void; onExport: () => void }) => (
   <Modal visible={visible} transparent animationType="none">
     <Pressable style={styles.modalOverlay} onPress={onClose}>
       <View style={styles.contextMenu}>
-        <BlurView
-          intensity={100}
-          tint="systemUltraThinMaterialDark"
+        <GlassView
+          glassEffectStyle="regular"
+          tintColor="rgba(0,0,0,0.3)"
           style={StyleSheet.absoluteFillObject}
           experimentalBlurMethod="dimezisBlurView"
         />

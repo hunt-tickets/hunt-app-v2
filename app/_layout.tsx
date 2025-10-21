@@ -60,7 +60,7 @@ function AppContent() {
         <Stack.Screen name="manage-events" options={{ headerShown: false }} />
         <Stack.Screen name="notifications" />
         <Stack.Screen name="profile" />
-        <Stack.Screen name="vender-tickets" />
+        <Stack.Screen name="vender-tickets" options={{ headerShown: false }} />
         <Stack.Screen
           name="scanner"
           options={{
@@ -103,8 +103,13 @@ export default function RootLayout() {
     }
   }, [loaded, error]);
 
-  if (!loaded && !error) {
-    return null;
+  if (!loaded) {
+    return null; // Don't render anything until fonts are loaded
+  }
+
+  if (error) {
+    // If there's an error loading fonts, we can still proceed but log it
+    console.warn('Font loading error:', error);
   }
 
   return (

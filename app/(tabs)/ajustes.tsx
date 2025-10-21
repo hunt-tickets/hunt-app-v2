@@ -55,7 +55,6 @@ export default function AjustesScreen() {
           subtitle: 'Email, teléfono, dirección',
           icon: 'card-outline',
           type: 'navigation',
-          action: () => console.log('Personal info'),
         },
         {
           id: 3,
@@ -72,7 +71,6 @@ export default function AjustesScreen() {
           icon: 'calendar-outline',
           type: 'navigation',
           action: () => {
-            console.log('Navigating to administrar-eventos');
             try {
               router.push('/manage-events');
             } catch (error) {
@@ -87,9 +85,8 @@ export default function AjustesScreen() {
           icon: 'ticket-outline',
           type: 'navigation',
           action: () => {
-            console.log('Navigating to vender-tickets');
             try {
-              router.push('/vender-tickets');
+              router.push('/vender-tickets/dashboard');
             } catch (error) {
               console.error('Navigation error:', error);
             }
@@ -102,7 +99,6 @@ export default function AjustesScreen() {
           icon: 'people-outline',
           type: 'navigation',
           action: () => {
-            console.log('Navigating to mis-perfiles');
             try {
               router.push('/mis-perfiles');
             } catch (error) {
@@ -161,7 +157,6 @@ export default function AjustesScreen() {
           value: theme.isDark,
           action: (value: boolean) => {
             toggleTheme();
-            console.log('Theme changed to:', value ? 'dark' : 'light');
           },
         },
       ],
@@ -176,11 +171,8 @@ export default function AjustesScreen() {
           icon: 'qr-code-outline',
           type: 'navigation',
           action: () => {
-            console.log('🟡 [Scanner] Attempting to navigate to scanner');
             try {
-              console.log('🟡 [Scanner] Using router.push(/scanner)');
               router.push('/scanner');
-              console.log('🟢 [Scanner] Navigation initiated successfully');
             } catch (error) {
               console.error('🔴 [Scanner] Navigation error:', error);
               Alert.alert('Error', 'No se pudo abrir el scanner');
@@ -194,7 +186,6 @@ export default function AjustesScreen() {
           icon: 'bug-outline',
           type: 'navigation',
           action: () => {
-            console.log('Navigating to reportar-bugs');
             try {
               router.push('/reportar-bugs');
             } catch (error) {
@@ -212,14 +203,12 @@ export default function AjustesScreen() {
           title: 'Términos y Condiciones',
           icon: 'document-text-outline',
           type: 'navigation',
-          action: () => console.log('Terms'),
         },
         {
           id: 9,
           title: 'Política de Privacidad',
           icon: 'shield-outline',
           type: 'navigation',
-          action: () => console.log('Privacy'),
         },
         {
           id: 10,

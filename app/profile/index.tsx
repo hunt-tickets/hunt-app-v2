@@ -50,7 +50,6 @@ export default function ProfileScreen() {
           setSelectedDate(date);
         }
       } catch (error) {
-        console.log('Invalid birthdate format');
       }
     }
   }, [profileData?.birthdate]);
@@ -62,7 +61,6 @@ export default function ProfileScreen() {
       const profile = await ApiService.getUserProfile(userToken);
       setProfileData(profile);
       setEditData(profile);
-      console.log('Profile loaded:', profile);
     } catch (error) {
       console.error('Error loading profile:', error);
       Alert.alert('Error', 'No se pudo cargar el perfil del usuario');
