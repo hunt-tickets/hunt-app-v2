@@ -531,6 +531,15 @@ export class ApiService {
         recordsCount: data.records?.length
       });
 
+      // Debug: Log complete API response data to understand the structure
+      console.log('🔍 Complete API Response:', JSON.stringify(data, null, 2));
+
+      // Debug: Log first record in detail if it exists
+      if (data.records && data.records.length > 0) {
+        console.log('🔍 First record in detail:', JSON.stringify(data.records[0], null, 2));
+        console.log('🔍 Available fields in first record:', Object.keys(data.records[0]));
+      }
+
       return data;
     } catch (error) {
       console.error('💥 Error fetching sales history:', error);

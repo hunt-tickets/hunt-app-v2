@@ -422,7 +422,7 @@ export default function EventosScreen() {
             {(searchQuery ? filteredActiveEvents.length > 0 : activeEvents.length > 0) && (
               <>
                 <Text style={styles.sectionTitle}>
-                  Eventos Activos {searchQuery && `(${filteredActiveEvents.length})`}
+                  Eventos Activos ({searchQuery ? filteredActiveEvents.length : activeEvents.length})
                 </Text>
                 <FlatList
                   data={searchQuery ? filteredActiveEvents : activeEvents}
@@ -446,7 +446,7 @@ export default function EventosScreen() {
             {(searchQuery ? filteredPastEvents.length > 0 : pastEvents.length > 0) && (
               <>
                 <Text style={[styles.sectionTitle, { marginTop: 32 }]}>
-                  Eventos Pasados {searchQuery && `(${filteredPastEvents.length})`}
+                  Eventos Pasados ({searchQuery ? filteredPastEvents.length : pastEvents.length})
                 </Text>
                 <FlatList
                   data={searchQuery ? filteredPastEvents : pastEvents}

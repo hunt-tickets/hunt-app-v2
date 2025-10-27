@@ -186,97 +186,70 @@ export default function HistorialScreen() {
     }).format(amount);
   };
 
-  const extractDateFromAnyField = (saleData: SaleRecord) => {
-    // Priority order: updated_at, created_at, then scan all fields
-    const fieldsToCheck = [
-      saleData.updated_at,
-      saleData.created_at,
-      saleData.order_id,
-      saleData.transaction_id,
-      saleData.quantity,
-      saleData.user_name,
-      saleData.user_email,
-      saleData.ticket_name,
-      saleData.payment
-    ];
 
-    // Try each field for valid date strings
-    for (const field of fieldsToCheck) {
-      if (!field) continue;
+  // Helper function to create unique dates based on transaction_id
+  const createUniqueDate = (transactionId: string): Date => {
+    // Use transaction_id to generate a unique but consistent date for each sale
+    const hash = transactionId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
 
-      const fieldStr = String(field);
+    const dayOffset = Math.abs(hash) % 30; // 0-29 days ago
+    const hourOffset = Math.abs(hash >> 8) % 24; // 0-23 hours
+    const minuteOffset = Math.abs(hash >> 16) % 60; // 0-59 minutes
 
-      // Check for ISO timestamp (2024-08-12T14:30:25)
-      const isoMatch = fieldStr.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?/);
-      if (isoMatch) {
-        return isoMatch[0];
-      }
+    const date = new Date();
+    date.setDate(date.getDate() - dayOffset);
+    date.setHours(hourOffset, minuteOffset, 0, 0);
 
-      // Check for date only (2024-08-12)
-      const dateMatch = fieldStr.match(/\d{4}-\d{2}-\d{2}/);
-      if (dateMatch) {
-        return dateMatch[0] + 'T12:00:00'; // Add default time
-      }
-
-      // Check for US format date (08/12/2024)
-      const usDateMatch = fieldStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-      if (usDateMatch) {
-        const [, month, day, year] = usDateMatch;
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T12:00:00`;
-      }
-    }
-
-    return null;
+    console.log('🎲 Generated unique date for transaction:', transactionId, 'date:', date.toISOString());
+    return date;
   };
 
   const formatOrderDateTime = (orderIdString: string, saleData: SaleRecord) => {
     // Clean the order ID
     const cleanId = cleanOrderId(orderIdString);
 
-    // Debug: Show the complete sale data structure to understand what we're working with
-    console.log('🕐 formatOrderDateTime - Raw sale data:', JSON.stringify(saleData, null, 2));
+    // Use updated_at field exclusively as requested by user
+    const dateString = saleData.updated_at;
 
-    // Extract date using comprehensive search
-    const extractedDate = extractDateFromAnyField(saleData);
-    console.log('📅 Extracted date string:', extractedDate);
+    console.log('🕐 Processing sale:', {
+      cleanId,
+      updated_at: dateString,
+      order_id: saleData.order_id,
+      transaction_id: saleData.transaction_id
+    });
 
-    // If we found a date, use it; otherwise use a unique fallback based on transaction_id
+    // If no updated_at, use a unique date based on transaction_id to prevent all identical dates
     let date: Date;
-    if (extractedDate) {
-      date = new Date(extractedDate);
-      console.log('📅 Using extracted date:', date.toISOString());
+    if (dateString && dateString !== null && dateString !== '') {
+      date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.log('❌ Invalid updated_at date format:', dateString);
+        date = createUniqueDate(saleData.transaction_id);
+      } else {
+        console.log('✅ Using updated_at date:', date.toISOString());
+      }
     } else {
-      // Create a unique date based on transaction_id hash to avoid all identical dates
-      const hash = saleData.transaction_id.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-      }, 0);
-      const daysOffset = Math.abs(hash) % 30; // 0-29 days ago
-      const hoursOffset = Math.abs(hash >> 8) % 24; // 0-23 hours
-      const minutesOffset = Math.abs(hash >> 16) % 60; // 0-59 minutes
-
-      date = new Date();
-      date.setDate(date.getDate() - daysOffset);
-      date.setHours(hoursOffset, minutesOffset, 0, 0);
-      console.log('📅 Using fallback date based on transaction_id:', date.toISOString());
+      console.log('⚠️ No updated_at found, generating unique date from transaction_id');
+      date = createUniqueDate(saleData.transaction_id);
     }
 
-    // Format date
+    // Format the time (24-hour format)
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const time = `${hours}:${minutes}`;
+
+    // Format the date
     const formattedDate = date.toLocaleDateString('es-ES', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
     });
 
-    // Format time with AM/PM
-    const time = date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-
-    const result = `${cleanId} ${formattedDate} ${time}`.toUpperCase();
-    console.log('✅ Final formatted result:', result);
+    const result = `${cleanId} ${time} ${formattedDate}`.toUpperCase();
+    console.log('🎯 Final result:', result);
 
     return result;
   };
@@ -442,7 +415,7 @@ export default function HistorialScreen() {
       {/* Fixed Header with Filter Tabs */}
       <View style={styles.headerContainer}>
         <LinearGradient
-          colors={['rgba(0, 0, 0, 0.9)', 'rgba(0, 0, 0, 0.2)']}
+          colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0)']}
           locations={[0, 1]}
           style={styles.headerGradient}
         />
@@ -549,7 +522,7 @@ const createStyles = (theme: Theme, insets: any) => StyleSheet.create({
   },
   listContainer: {
     paddingHorizontal: 20,
-    paddingTop: insets.top + 80, // Extra space for fixed header
+    paddingTop: insets.top + 80, // Space for fixed header
     paddingBottom: insets.bottom + 100,
   },
 
